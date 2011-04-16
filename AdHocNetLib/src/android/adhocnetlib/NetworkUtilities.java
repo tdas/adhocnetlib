@@ -21,9 +21,8 @@ public class NetworkUtilities {
 	public static boolean checkIfInitialized() {
 		if (!initialized) {
 			Loge("NetworkUtilities not yet initialized.");
-			return true;
 		}
-		return false;
+		return initialized;
 	}
 	
     public static boolean stopWifi() {
@@ -79,7 +78,7 @@ public class NetworkUtilities {
     public static boolean startAdhocServerMode() {
         if (!checkIfInitialized()) return false; 
     	
-        if (tetherStarted = true) {
+        if (tetherStarted) {
         	Logd("AdhocServer alread started.");
         	return true;
         }
@@ -133,6 +132,17 @@ public class NetworkUtilities {
     		Loge("AdhocClient mode not started. Could not start WiFi.");
     	}
     	
+    	return false;
+    }
+    
+    public static boolean stopAdhocClientMode() {
+    	if (!checkIfInitialized()) return false; 
+    	
+    	// Option 1: start wifi, the phone will automatically connect to AndroidTether
+    	// Option 2: start wifi, force the phone to connect to AndroidTether
+    	if (!stopWifi()) {
+    		Loge("AdhocClient mode not started. Could not start WiFi.");
+    	}    	
     	return false;
     }
     

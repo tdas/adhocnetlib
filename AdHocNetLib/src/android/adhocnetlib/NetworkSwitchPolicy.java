@@ -1,6 +1,5 @@
 package android.adhocnetlib;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -33,12 +32,13 @@ public class NetworkSwitchPolicy {
 			if (now.getTime() - lastSwitchTime.getTime() > adhocClientTime) 
 				nextState = NetworkManager.NetworkStates.ADHOC_CLIENT;
 			break;
+		default: Loge("Unexpected state: "+ curState.toString());
 		}
 		Logd("Next state: " + nextState.toString());
 		return nextState;
 	}
 	
-	public static final NetworkSwitchPolicy Default = new NetworkSwitchPolicy(0, 10, 12 );
+	public static final NetworkSwitchPolicy Default = new NetworkSwitchPolicy(0, 10, 12);
 	
 	private static void Logd(String msg) {
 		Log.d("NetworkSwitchPolicy", msg);

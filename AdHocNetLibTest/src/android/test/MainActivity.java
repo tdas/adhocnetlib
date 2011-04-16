@@ -2,7 +2,6 @@ package android.test;
 
 import android.adhocnetlib.NetworkUtilities;
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -45,19 +44,44 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View arg0) {
-		if (arg0 == (View)button1) {
-			//Toast.makeText(this, "Button 1 Works", 1000).show();
-			try {
-				NetworkUtilities.enableWifi();
-			} catch (Exception e) {
-				Log.e("Test", e.toString());
+		try {
+			
+			if (arg0 == (View)button1) {
+				if (NetworkUtilities.startWifi()) {
+					showMessage("WiFi started.");
+				} else {
+					showMessage("WiFi not started.");
+				}					
+			} else if (arg0 == (View)button2) {
+				if (NetworkUtilities.stopWifi()) {
+					showMessage("WiFi stopped.");
+				} else {
+					showMessage("WiFi not stopped.");
+				}
+			} else if (arg0 == (View)button3) {
+				if (NetworkUtilities.startAdhocServerMode()) {
+					showMessage("AdHocServer started.");
+				} else {
+					showMessage("AdHocServer not started.");
+				}
+			} else if (arg0 == (View)button4) {
+				if (NetworkUtilities.stopAdhocServerMode()) {
+					showMessage("AdHocServer stopped.");
+				} else {
+					showMessage("AdHocServer not stopped.");
+				}
+			}else if (arg0 == (View)button5) {
+				showMessage("Exiting");
+				System.exit(0);
 			}
-		} else if (arg0 == (View)button2) {
-			//Toast.makeText(this, "Button 2 Works", 1000).show();
-			NetworkUtilities.disableWifi();
-		} else if (arg0 == (View)button5) {
-			Toast.makeText(this, "Button 3 Works", 1000).show();
-			System.exit(0);
-		}  
-	}    
+		} catch (Exception e) {
+			Log.e("Test", e.toString());
+			showMessage("Error: " + e); 
+					
+		}
+	}
+	
+	public void showMessage(String message) {
+		Toast.makeText(this, message, 1000).show();
+	}
 }

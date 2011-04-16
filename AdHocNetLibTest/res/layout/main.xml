@@ -7,6 +7,6 @@
     <Button android:text="Enable WiFi" android:id="@+id/button1" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
     <Button android:layout_height="wrap_content" android:text="Disable WiFi" android:id="@+id/button2" android:layout_width="wrap_content"></Button>
     <Button android:text="Enable Adhoc Server" android:id="@+id/button3" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
-    <Button android:text="Enable Adhoc Client" android:id="@+id/button4" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
+    <Button android:text="Disable Adhoc Server" android:id="@+id/button4" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
     <Button android:text="Exit" android:id="@+id/button5" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
 </LinearLayout>
