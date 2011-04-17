@@ -1,6 +1,8 @@
 package android.adhocnetlib;
 
 import java.sql.Timestamp;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,22 +16,39 @@ public final class NetworkManager {
 	
 	public enum NetworkSwitchModes { AUTOMATIC, MANUAL }
 
-	// ---------------- Subclasses ----------------
+	// ---------------- Subclasses ----------------	
+	private class StateChangeTimerTask extends TimerTask {
+		@Override
+		public void run() {			
+			NetworkManager.getInstance().changeState();			
+		}
+		
+	}
+
 	
 	// ---------------- Instance Fields ----------------  
 	private NetworkStates state = NetworkStates.DISABLED;
-	//private NetworkSwitchModes switchMode = NetworkSwitchModes.AUTOMATIC;	
+	private NetworkSwitchModes switchMode = NetworkSwitchModes.AUTOMATIC;	
 	private NetworkSwitchPolicy switchPolicy = NetworkSwitchPolicy.Default; 
 	
 	private WifiManager wifiManager = null;
+	private Context context = null;
+	private NetworkUtilities netUitls = NetworkUtilities.getInstance();
 	
 	private boolean started = false;
 	private boolean initialized = false;
 	private boolean newMessage = false;
+	
 	private Timestamp lastSwitchTime = new Timestamp(0);
 	private Timestamp lastActivityTime = new Timestamp(0);
+	private Timer stateChangeTimer = new Timer("autoStateChangeTimer", true);
+	private TimerTask stateChangeTimerTask = new StateChangeTimerTask();
+	private long stateChangeTimerDelay = 500;
+	
+	private boolean AdhocClientModeStarted = false;
 	
 	// --------------- Class Fields --------------------
+	private static final String TAG = "NetworkManager";
 	private static NetworkManager singleInstance = new NetworkManager();
 	
 	// ---------------- Instance Methods ----------------  
@@ -37,9 +56,10 @@ public final class NetworkManager {
 		
 	}
 
-	public boolean initialize (Activity mainActivity) {
-		wifiManager = (WifiManager) mainActivity.getSystemService(Context.WIFI_SERVICE); ;
-		NetworkUtilities.initialize(wifiManager);
+	public boolean initialize (Context c) {
+		context = c;
+		wifiManager = (WifiManager) c.getSystemService(Context.WIFI_SERVICE); ;
+		netUitls.initialize(c);
 		initialized = true;
 		return true;
 	}
@@ -55,7 +75,9 @@ public final class NetworkManager {
 			started = true;
 			Logd("Started");
 		}
-
+		if (switchMode == NetworkSwitchModes.AUTOMATIC) {
+			stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay);		
+		}
 		return started;
 	}
 	
@@ -92,28 +114,46 @@ public final class NetworkManager {
 		return started;
 	
 	}
-
+	
 	private synchronized void changeState() {
 		if (!checkIfStarted()) return;
+		stateChangeTimer.cancel();
 		
 		NetworkStates newState =  switchPolicy.getNextState(state, lastSwitchTime, lastActivityTime);
 		if (state != newState) {
 			lastActivityTime = lastSwitchTime;
 			
 			switch (state) {
-			case ADHOC_SERVER: NetworkUtilities.stopAdhocServerMode(); break;
-			case ADHOC_CLIENT: NetworkUtilities.stopAdhocClientMode(); break;
+			case ADHOC_SERVER: netUitls.stopAdhocServerMode(); break;
+			case ADHOC_CLIENT: netUitls.stopAdhocClientMode(); AdhocClientModeStarted = false; break;
 			}
 			
 			switch (newState) {
-			case DISABLED: NetworkUtilities.stopWifi(); break;
-			case ADHOC_SERVER: NetworkUtilities.startAdhocServerMode(); break;
-			case ADHOC_CLIENT: NetworkUtilities.startAdhocClientMode();
+			case DISABLED: netUitls.stopWifi(); break;
+			case ADHOC_SERVER: netUitls.startAdhocServerMode(); break;
+			case ADHOC_CLIENT: 
+				AdhocClientModeStarted = false;
+				netUitls.initiateAdhocClientMode(new NetworkUtilities.AdhocClientModeStartListener() {
+				@Override
+				public void onAdhocClientModeReady() {
+					OnAdhocClientModeStarted();
+				}				
+			});
 			default: Loge("Unexpected new state: " + newState);
 			}
 			state = newState;
 		}
+		
+		if (switchMode == NetworkSwitchModes.AUTOMATIC) {
+			stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay);		
+		}
 	}
+	
+	private void OnAdhocClientModeStarted() {
+		AdhocClientModeStarted = true;
+		// get ip address and then connect at a predefined port
+	}
+	
 	
 	// ---------------- Class Methods ----------------  
 	public static NetworkManager getInstance() {
@@ -121,11 +161,11 @@ public final class NetworkManager {
 	}
 
 	private static void Logd(String msg) {
-		Log.d("NetworkManager", msg);
+		Log.d(TAG, msg);
 	}
 	
 	private static void Loge(String msg) {
-		Log.e("NetworkManager", msg);
+		Log.e(TAG, msg);
 	}
 	
 }

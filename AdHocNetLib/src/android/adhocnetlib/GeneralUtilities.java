@@ -14,8 +14,7 @@ public class GeneralUtilities {
         }
     }
 	*/
-	public static ShellCommand shell = new ShellCommand();
-	
+	public static ShellCommand shell = new ShellCommand();	
 	
 	public static boolean runRootCommand(String command) {
 		Logd("Root-Command ==> \""+command+"\"");

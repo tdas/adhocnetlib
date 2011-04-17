@@ -6,6 +6,7 @@ import java.util.Date;
 import android.util.Log;
 
 public class NetworkSwitchPolicy {
+	private static final String TAG = "NetworkSwitchPolicy";
 	public long disabledTime;
 	public long adhocServerTime;
 	public long adhocClientTime;
@@ -41,10 +42,10 @@ public class NetworkSwitchPolicy {
 	public static final NetworkSwitchPolicy Default = new NetworkSwitchPolicy(0, 10, 12);
 	
 	private static void Logd(String msg) {
-		Log.d("NetworkSwitchPolicy", msg);
+		Log.d(TAG, msg);
 	}
 	
 	private static void Loge(String msg) {
-		Log.e("NetworkSwitchPolicy", msg);
+		Log.e(TAG, msg);
 	}
 }

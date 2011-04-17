@@ -1,6 +1,7 @@
 package android.test;
 
 import android.adhocnetlib.NetworkUtilities;
+import android.adhocnetlib.NetworkUtilities.AdhocClientModeStartListener;
 import android.app.Activity;
 import android.content.Context;
 import android.net.wifi.WifiManager;
@@ -10,14 +11,18 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 
 public class MainActivity extends Activity implements OnClickListener {
-    Button button1 = null;
-    Button button2 = null;
-	Button button3 = null;
-    Button button4 = null;
-	Button button5 = null;
+    NetworkUtilities netUtil = NetworkUtilities.getInstance();
+
+    Button exitButton = null;
+    Button randomButton = null;
+	ToggleButton wifiToggleButton = null;
+	ToggleButton adhocServerToggleButton = null;
+	ToggleButton adhocClientToggleButton = null;
+	
 	
 	/** Called when the activity is first created. */
     @Override
@@ -25,63 +30,90 @@ public class MainActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        button1 = (Button) findViewById(R.id.button1);
-        button2 = (Button) findViewById(R.id.button2);
-        button3 = (Button) findViewById(R.id.button3);
-        button4 = (Button) findViewById(R.id.button4);
-        button5 = (Button) findViewById(R.id.button5);
+        randomButton = (Button) findViewById(R.id.randomButton);        
+        randomButton.setOnClickListener(this);
         
-        button1.setOnClickListener(this);
-        button2.setOnClickListener(this);
-        button3.setOnClickListener(this);
-        button4.setOnClickListener(this);
-        button5.setOnClickListener(this);
+        exitButton = (Button) findViewById(R.id.exitButton);        
+        exitButton.setOnClickListener(this);
         
-        WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
-        NetworkUtilities.initialize(wifiManager);
+        wifiToggleButton = (ToggleButton) findViewById(R.id.wifiToggleButton);
+        adhocServerToggleButton = (ToggleButton) findViewById(R.id.adhocServerToggleButton);
+        adhocClientToggleButton = (ToggleButton) findViewById(R.id.adhocClientToggleButton);
         
+        wifiToggleButton.setOnClickListener(this);
+        adhocServerToggleButton.setOnClickListener(this);
+        adhocClientToggleButton.setOnClickListener(this);
+        
+        //WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
+        netUtil.initialize(this);        
     }
 
 	@Override
 	public void onClick(View arg0) {
 		try {
 			
-			if (arg0 == (View)button1) {
-				if (NetworkUtilities.startWifi()) {
-					showMessage("WiFi started.");
-				} else {
-					showMessage("WiFi not started.");
-				}					
-			} else if (arg0 == (View)button2) {
-				if (NetworkUtilities.stopWifi()) {
-					showMessage("WiFi stopped.");
-				} else {
-					showMessage("WiFi not stopped.");
-				}
-			} else if (arg0 == (View)button3) {
-				if (NetworkUtilities.startAdhocServerMode()) {
-					showMessage("AdHocServer started.");
-				} else {
-					showMessage("AdHocServer not started.");
-				}
-			} else if (arg0 == (View)button4) {
-				if (NetworkUtilities.stopAdhocServerMode()) {
-					showMessage("AdHocServer stopped.");
-				} else {
-					showMessage("AdHocServer not stopped.");
-				}
-			}else if (arg0 == (View)button5) {
-				showMessage("Exiting");
+			if (arg0 == (View)exitButton) {
+				Toast("Exiting");
 				System.exit(0);
+			} else if (arg0 == (View)wifiToggleButton) {
+				if (wifiToggleButton.isChecked()) {
+					if (netUtil.startWifi()) {
+						Toast("WiFi started.");
+					} else {
+						Toast("WiFi not started.");
+					}
+				} else {
+					if (netUtil.stopWifi()) {
+						Toast("WiFi stopped.");
+					} else {
+						Toast("WiFi not stopped.");
+					}
+				}
+			} else if (arg0 == (View) adhocServerToggleButton) {
+				if (adhocServerToggleButton.isChecked()) {
+					if (netUtil.startAdhocServerMode()) {
+						Toast("AdHocServer started.");
+					} else {
+						Toast("AdHocServer not started.");
+					}
+				} else {
+					if (netUtil.stopAdhocServerMode()) {
+						Toast("AdHocServer stopped.");
+					} else {
+						Toast("AdHocServer not stopped.");
+					}
+				}
+			} else if (arg0 == (View) adhocClientToggleButton) {
+				if (adhocClientToggleButton.isChecked()) {
+					if (netUtil.initiateAdhocClientMode(new AdhocClientModeStartListener() {
+						@Override
+						public void onAdhocClientModeReady() {
+							Toast("AdhocClient started.");
+						}
+					})) {
+						Toast("AdHocClient initiated.");
+					} else {
+						Toast("AdHocClient not initiated.");
+					}
+				} else {
+					if (netUtil.stopAdhocClientMode()) {
+						Toast("AdHocClient stopped.");
+					} else {
+						Toast("AdHocClient not stopped.");
+					}
+				}
+			} else if (arg0 == (View)randomButton) {
+				netUtil.getWifiConfigurations();
 			}
+			
 		} catch (Exception e) {
 			Log.e("Test", e.toString());
-			showMessage("Error: " + e); 
+			Toast("Error: " + e); 
 					
 		}
 	}
 	
-	public void showMessage(String message) {
-		Toast.makeText(this, message, 1000).show();
+	public void Toast(String message) {
+		Toast.makeText(this, message, 500).show();
 	}
 }
