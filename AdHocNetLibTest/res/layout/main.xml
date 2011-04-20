@@ -5,9 +5,12 @@
     android:layout_height="fill_parent"
     >
     <TableLayout android:id="@+id/tableLayout1" android:layout_height="wrap_content" android:stretchColumns="true" android:layout_width="match_parent">
+        <TableRow android:layout_width="wrap_content" android:id="@+id/tableRow5" android:layout_height="wrap_content">
+            <TextView android:id="@+id/textView3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Toggle Network States" android:textSize="0.125in" android:textStyle="bold"></TextView>
+        </TableRow>
         <TableRow android:id="@+id/tableRow1" android:layout_height="wrap_content" android:layout_width="match_parent">
-            <TextView android:id="@+id/textView1" android:fitsSystemWindows="false" android:layout_height="fill_parent" android:gravity="center" android:layout_width="wrap_content" android:textStyle="bold" android:textSize="0.1in" android:text="Wifi                             "></TextView>
-            <ToggleButton android:layout_width="fill_parent" android:text="Wifi" android:layout_height="wrap_content" android:layout_gravity="right" android:id="@+id/wifiToggleButton"></ToggleButton>
+            <TextView android:id="@+id/textView1" android:fitsSystemWindows="false" android:layout_height="fill_parent" android:layout_width="wrap_content" android:textStyle="bold" android:textSize="0.1in" android:text="Wifi                             " android:gravity="left|center_vertical"></TextView>
+            <ToggleButton android:text="Wifi" android:id="@+id/wifiToggleButton" android:layout_height="fill_parent" android:layout_width="match_parent"></ToggleButton>
         </TableRow>
         <TableRow android:layout_height="wrap_content" android:layout_width="match_parent" android:id="@+id/tableRow2">
             <TextView android:id="@+id/textView2" android:gravity="left|center_vertical" android:layout_height="fill_parent" android:layout_width="fill_parent" android:textStyle="bold" android:textSize="0.1in" android:text="Adhoc Server"></TextView>
@@ -17,8 +20,12 @@
             <TextView android:layout_width="fill_parent" android:gravity="left|center_vertical" android:layout_height="fill_parent" android:id="@+id/TextView01" android:textStyle="bold" android:textSize="0.1in" android:text="Adhoc Client"></TextView>
             <ToggleButton android:layout_width="wrap_content" android:text="AdhocClient" android:layout_height="wrap_content" android:id="@+id/adhocClientToggleButton"></ToggleButton>
         </TableRow>
+        <TableRow android:layout_width="wrap_content" android:id="@+id/tableRow6" android:layout_height="wrap_content">
+            <TextView android:layout_width="fill_parent" android:gravity="left|center_vertical" android:layout_height="fill_parent" android:textSize="0.1in" android:textStyle="bold" android:id="@+id/TextView02" android:text="Disabled/AServer/AClient"></TextView>
+            <Button android:id="@+id/allModeButton" android:layout_height="wrap_content" android:layout_width="fill_parent" android:text="Disabled"></Button>
+        </TableRow>
         <TableRow android:id="@+id/tableRow4" android:layout_width="wrap_content" android:layout_height="wrap_content">
-            <Button android:text="RandomButton" android:id="@+id/randomButton" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
+            <Button android:text="RandomButton" android:id="@+id/randomButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="visible"></Button>
         </TableRow>
     </TableLayout>
     <Button android:text="Exit" android:id="@+id/exitButton" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>

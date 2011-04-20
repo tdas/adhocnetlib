@@ -1,5 +1,17 @@
 package android.test;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import org.apache.http.conn.util.InetAddressUtils;
+
+import android.adhocnetlib.NetworkManager;
+import android.adhocnetlib.NetworkManager.NetworkStates;
 import android.adhocnetlib.NetworkUtilities;
 import android.adhocnetlib.NetworkUtilities.AdhocClientModeStartListener;
 import android.app.Activity;
@@ -15,10 +27,12 @@ import android.widget.ToggleButton;
 
 
 public class MainActivity extends Activity implements OnClickListener {
-    NetworkUtilities netUtil = NetworkUtilities.getInstance();
+	NetworkManager networkManager = NetworkManager.getInstance();
+	NetworkUtilities netUtil = NetworkUtilities.getInstance();
 
     Button exitButton = null;
     Button randomButton = null;
+    Button allModeButton = null;
 	ToggleButton wifiToggleButton = null;
 	ToggleButton adhocServerToggleButton = null;
 	ToggleButton adhocClientToggleButton = null;
@@ -30,10 +44,12 @@ public class MainActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
+        allModeButton = (Button) findViewById(R.id.allModeButton);
         randomButton = (Button) findViewById(R.id.randomButton);        
-        randomButton.setOnClickListener(this);
-        
         exitButton = (Button) findViewById(R.id.exitButton);        
+        
+        allModeButton.setOnClickListener(this);
+        randomButton.setOnClickListener(this);
         exitButton.setOnClickListener(this);
         
         wifiToggleButton = (ToggleButton) findViewById(R.id.wifiToggleButton);
@@ -45,7 +61,10 @@ public class MainActivity extends Activity implements OnClickListener {
         adhocClientToggleButton.setOnClickListener(this);
         
         //WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
-        netUtil.initialize(this);        
+        networkManager.initialize(this);
+        networkManager.setSwitchModeToManual();
+        networkManager.start();
+        
     }
 
 	@Override
@@ -53,6 +72,10 @@ public class MainActivity extends Activity implements OnClickListener {
 		try {
 			
 			if (arg0 == (View)exitButton) {
+				if (adhocServerToggleButton.isChecked()) {
+					Toast("Stopping AdhocServer.");
+					netUtil.stopAdhocServerMode();
+				}
 				Toast("Exiting");
 				System.exit(0);
 			} else if (arg0 == (View)wifiToggleButton) {
@@ -103,7 +126,83 @@ public class MainActivity extends Activity implements OnClickListener {
 					}
 				}
 			} else if (arg0 == (View)randomButton) {
-				netUtil.getWifiConfigurations();
+				//netUtil.getWifiConfigurations();
+				new Thread(new Runnable () {
+					
+					@Override
+					public void run() {
+						String TAG = "TestThread";
+						try 
+						{	
+							String ip = netUtil.getIP();
+							if (ip == null) {
+								ip = netUtil.getWifiIP();
+							}
+							ServerSocket ss = new ServerSocket(2345, 10, InetAddress.getByName(ip));
+							Socket cs = ss.accept();
+							BufferedReader input = new BufferedReader(new InputStreamReader(cs.getInputStream()));
+							PrintWriter output = new PrintWriter(cs.getOutputStream(),true);
+							
+							String synStr = input.readLine();
+							Log.d(TAG, "Received " + synStr);
+							output.println("SYNACK");
+							Log.d(TAG, "Sent SYNACK");
+							String ackStr = input.readLine();
+							Log.d(TAG, "Received " + ackStr);
+							
+							Toast("Data successfully received.");
+							
+							cs.close();
+							ss.close();
+							return;
+						} catch (Exception ex) {
+							Toast("Already listening");
+						}
+						
+						try {
+							String ip = netUtil.getIP();
+							Socket cs = new Socket(ip, 2345);
+							
+							BufferedReader input = new BufferedReader(new InputStreamReader(cs.getInputStream()));
+							PrintWriter output = new PrintWriter(cs.getOutputStream(),true);
+							output.println("SYN");
+							Log.d(TAG, "Sent SYN");
+							String synackStr = input.readLine();
+							Log.d(TAG, "Received " + synackStr);
+							output.println("ACK");
+							Log.d(TAG, "Sent ACK");
+							
+							Toast("Data successfully sent.");
+
+							cs.close();
+						} catch (Exception ex) {
+							
+						}
+
+					}
+					
+				}).start();
+				
+			} else if (arg0 == (View)allModeButton) {
+				if (allModeButton.getText().toString().contains("Disabled")) {
+					networkManager.setState(NetworkStates.ADHOC_CLIENT);
+					adhocServerToggleButton.setChecked(false);
+					adhocClientToggleButton.setChecked(true);
+					wifiToggleButton.setChecked(true);
+					allModeButton.setText("AClient");
+				} else if (allModeButton.getText().toString().contains("Client")) {
+					networkManager.setState(NetworkStates.ADHOC_SERVER);
+					adhocServerToggleButton.setChecked(true);
+					adhocClientToggleButton.setChecked(false);
+					wifiToggleButton.setChecked(true);
+					allModeButton.setText("AServer");
+				} else if (allModeButton.getText().toString().contains("Server")) {
+					networkManager.setState(NetworkStates.DISABLED);
+					adhocServerToggleButton.setChecked(false);
+					adhocClientToggleButton.setChecked(false);
+					wifiToggleButton.setChecked(false);
+					allModeButton.setText("Disabled");
+				}
 			}
 			
 		} catch (Exception e) {
@@ -113,7 +212,16 @@ public class MainActivity extends Activity implements OnClickListener {
 		}
 	}
 	
-	public void Toast(String message) {
-		Toast.makeText(this, message, 500).show();
+	public void Toast2(String message) {
+		
+	}
+	
+	public void Toast(final String message) {
+		final Activity a = this;
+		a.runOnUiThread(new Runnable() {
+		    public void run() {
+		        Toast.makeText(a, message, Toast.LENGTH_SHORT).show();
+		    }
+		});
 	}
 }
