@@ -1,5 +1,12 @@
 package android.adhocnetlib;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
+import java.io.StreamCorruptedException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,34 +17,39 @@ import java.util.UUID;
 
 public class BufferManager {
 	
-	private static class Data {
+	public static class Data implements Serializable {
 		public byte[] bytes = null;
-		public Timestamp time = null;		
-		public Data(byte[] b, Timestamp t) {
+		public long time = 0;		
+		public Data(byte[] b, long t) {
 			bytes = b;
 			time = t;
 		}
 	}
 	
-	private static class BufferItem {
+	public static class BufferItem implements Serializable {
 		Data data = null;
 		Integer hash = 0;
 		long ttl = 0;
 		HashSet<UUID> nodeIDs = new HashSet<UUID>();
 	
 		public BufferItem (byte[] bytes, long ttl, UUID nodeID) {
-			data = new Data(bytes, new Timestamp(new Date().getTime()));
+			data = new Data(bytes, new Date().getTime());
 			hash = new Integer(data.hashCode());
 			this.ttl = ttl;
 			nodeIDs.add(nodeID);
 		}
 		
-		public static byte[] serialize(BufferItem item) {
-			return null;
+		public static void serialize (BufferItem item, OutputStream out) 
+		throws IOException {
+			ObjectOutputStream oos = new ObjectOutputStream(out);
+			oos.writeObject(item);
 		}
 		
-		public static BufferItem deserialize(byte[] bytes) {
-			return null;
+		public static BufferItem deserialize (InputStream in) 
+		throws StreamCorruptedException, IOException, ClassNotFoundException {
+			ObjectInputStream ois = new ObjectInputStream(in);
+			BufferItem item = (BufferItem) ois.readObject();
+			return item;
 		}
 	}
 	
@@ -133,11 +145,16 @@ public class BufferManager {
 	}
 	*/
 	
-	public static byte[] serialize (Collection<BufferItem> items) {
-		return null;
+	/*public static void serialize (Collection<BufferItem> items, OutputStream out) throws IOException {
+		ObjectOutputStream oos = new ObjectOutputStream(out);
+		for(BufferItem item : items){
+			oos.writeObject(item);
+		}
 	}
 	
-	public static Collection<BufferItem> deserialize (byte[] bytes) {
-		return null;
-	}
+	public static Collection<BufferItem> deserialize (byte[] bytes, InputStream in) {
+		ObjectInputStream ois = new ObjectInputStream(in);
+		BufferItem item = (BufferItem) ois.readObject();
+		return item;
+	}*/
 }

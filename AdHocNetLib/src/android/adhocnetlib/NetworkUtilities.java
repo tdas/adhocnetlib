@@ -85,46 +85,7 @@ public class NetworkUtilities {
 									return;
 					    		}
 					    	} 
-					    	break;
-					    	/*int attempt = 10;
-							while (attempt > 0) {	
-								
-								if (!wifiManager.enableNetwork(netID, true)) {
-									message = "Connection unsuccessful.";
-									Loge(message);
-									Toast(message);
-								} else {
-									WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-									wifiInfo.getSSID();
-									message = "Waiting for IP address.";
-									Toast(message);
-									Date scanStartTime = new Date();
-									while (!hasWifiIP() && new Date().getTime() - scanStartTime.getTime() < 10 * 1000) {
-										Thread.sleep(500);
-									} 
-									if (!hasWifiIP()) {
-										message = "Connected, but could not get IP address.";
-										Logd(message);
-										Toast(message);
-									} else {
-										message = "Successfully connected.";
-										Logd(message);
-										Toast(message);
-										done = true;
-										//context.unregisterReceiver(this);
-										if (adhocClientModeStartListener != null) {
-											adhocClientModeStartListener.onAdhocClientModeReady();
-										}
-										return;		
-									}
-								}
-								attempt--;
-								try {
-									Thread.sleep(500);
-								} catch (Exception e) {
-								
-								}	
-							}*/
+					    	break;					    	
 						}
 					}
 				
@@ -169,7 +130,11 @@ public class NetworkUtilities {
 	
 		private boolean connect(int netID) throws InterruptedException {
 			String ssid = "";
-			
+			if(hasWifiIP()) {
+				Logd("Wifi already connected -- need not attempt again");
+				Toast("Wifi already connected -- need not attempt again");
+				return true;				
+			}
 			//attempting to associate with the required network
 			int attempt = 10;			
 			while (attempt > 0) {	

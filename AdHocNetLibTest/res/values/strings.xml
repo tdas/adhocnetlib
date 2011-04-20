@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, MainActivity!</string>
     <string name="app_name">AdHocNetLibTest</string>
+    
+    <string name="toggle_prompt">Select mode</string>
+    <string-array name="toggle_array">
+        <item>Disabled</item>
+        <item>Server</item>
+        <item>Client</item>
+    </string-array>
+    
 </resources>

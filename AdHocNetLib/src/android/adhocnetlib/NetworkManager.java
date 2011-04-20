@@ -14,6 +14,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import android.adhocnetlib.BufferManager.BufferItem;
 import android.app.Activity;
 import android.content.Context;
 import android.content.IntentSender.SendIntentException;
@@ -109,21 +110,46 @@ public final class NetworkManager {
 				// Send server.id and the buffer items
 				// Receive buffer items and add it to the buffer
 				
-				BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+				//BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				//PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+				byte[] synByteArray = null;
+				String synStr = "";
+				try {
+					synByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
+					synStr = new String(synByteArray);
+					Log.d(TAG, "Received " + synStr);
+				} catch (Exception e) {
+					Loge("Failed in deserializing syn: " + e);
+					Toast("Failed in deserializing syn: " + e);
+				}
 				
-				String synStr = input.readLine();
-				Log.d(TAG, "Received " + synStr);
-				output.println("SYNACK");
-				Log.d(TAG, "Sent SYNACK");
-				String ackStr = input.readLine();
-				Log.d(TAG, "Received " + ackStr);
+				
+				try {
+					BufferItem.serialize(new BufferItem("SYNACK".getBytes(), 20000,
+							NetworkManager.getInstance().uniqueID), 
+							socket.getOutputStream());
+					Log.d(TAG, "Sent SYNACK");
+				} catch (Exception e) {
+					Loge("Failed in serializing synack: " + e);
+					Toast("Failed in serializing synack: " + e);
+				}
+				
+				
+				String ackStr = "";
+				byte[] ackByteArray = null;
+				try {
+					ackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
+					ackStr = new String(ackByteArray);
+					Log.d(TAG, "Received " + ackStr);
+				} catch (Exception e) {
+					Loge("Failed in deserializing ack: " + e);
+					Toast("Failed in deserializing ack: " + e);
+				}
+				
+
 				
 				Toast("Data successfully received.");
 				
-			} catch (IOException ioe) {
-				message= "ReceivingThread exception: "+ ioe.toString();
-				Log.d(TAG, message);
 			} catch (Exception e) {
 				message= "ReceivingThread exception: "+ e.toString();
 				Log.d(TAG, message);
@@ -146,7 +172,7 @@ public final class NetworkManager {
 			Log.d(TAG, "SendingThread started.");
 			String message = null;
 			try {
-				
+				int attempts = 20;
 				// Send client.id
 				// Receive server.id and buffer items and add them to the buffer
 				// Get buffer items that have not been already sent to server.id
@@ -154,27 +180,66 @@ public final class NetworkManager {
 				
 				Thread.sleep(1000);
 				Socket socket = new Socket(netUitls.getWifiAdhocServerIP(),adhocServerListeningPort);
-				BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
-				output.println("SYN");
-				Log.d(TAG, "Sent SYN");
-				String synackStr = input.readLine();
-				Log.d(TAG, "Received " + synackStr);
-				output.println("ACK");
-				Log.d(TAG, "Sent ACK");
+				//BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				//PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
+				//output.println("SYN");
+				while (attempts > 0) {
+					try {
+						BufferItem.serialize(new BufferItem("SYN".getBytes(), 20000,
+								NetworkManager.getInstance().uniqueID), 
+								socket.getOutputStream());
+						Logd("Sent SYN");
+						break;
+						
+					} catch (Exception e) {
+						Loge("Exception in serializing syn: " + e);
+					}
+					attempts--;
+				}
+				attempts = 20;
+				
+				byte[] synackByteArray = null;
+				while (attempts > 0){
+					try {
+						synackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
+						String synackStr = new String(synackByteArray);//input.readLine();
+						Logd("Received " + synackStr);
+						break;
+					} catch (Exception e) {
+						Loge("Exception in deserializing synack: " + e);
+					}
+					attempts--;
+				}
+				attempts = 20;
+				
+				//output.println("ACK");
+				while (attempts > 0) {
+					try {
+						BufferItem.serialize(new BufferItem("ACK".getBytes(), 20000,
+								NetworkManager.getInstance().uniqueID), 
+								socket.getOutputStream());
+						Logd("Sent ACK");
+						break;
+					} catch (Exception e) {
+						Loge("Exception in serializing ack: " + e);
+					}
+					attempts--;
+				}
+				attempts = 20;
+				
 				
 				Toast("Data successfully sent.");
 				
 				
 			}  catch (UnknownHostException uhe) {
 				message= "SendingThread exception: "+ uhe.toString();
-				Log.e(TAG, message);
+				Loge(message);
 			} catch (IOException ioe) {
 				message= "SendingThread exception: "+ ioe.toString();
-				Log.e(TAG, message);
+				Loge(message);
 			} catch (Exception e) {
 				message= "SendingThread exception: "+ e.toString();
-				Log.e(TAG, message);
+				Loge(message);
 			}
 		}
 		
@@ -293,12 +358,14 @@ public final class NetworkManager {
 			case ADHOC_SERVER: 
 				if (listeningThread != null) {
 					listeningThread.stop();
+					listeningThread = null;
 				}
 				netUitls.stopAdhocServerMode(); 
 				break;
 			case ADHOC_CLIENT: 
 				if (sendingThread != null) {
 					sendingThread.stop();
+					sendingThread = null;
 				}
 				netUitls.stopAdhocClientMode(); 
 				managerState.adhocClientModeStarted = false; 
@@ -319,7 +386,7 @@ public final class NetworkManager {
 					public void onAdhocClientModeReady() {
 						OnAdhocClientModeStarted();
 					}				
-				});
+				});				
 				break;
 			default: Loge("Unexpected new state: " + newState);
 			}

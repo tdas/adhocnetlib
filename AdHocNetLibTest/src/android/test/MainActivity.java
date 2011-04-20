@@ -21,7 +21,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -36,7 +40,8 @@ public class MainActivity extends Activity implements OnClickListener {
 	ToggleButton wifiToggleButton = null;
 	ToggleButton adhocServerToggleButton = null;
 	ToggleButton adhocClientToggleButton = null;
-	
+	Spinner toggleDropDown = null;
+	ArrayAdapter<CharSequence> dropDownAdapter = null;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -55,6 +60,14 @@ public class MainActivity extends Activity implements OnClickListener {
         wifiToggleButton = (ToggleButton) findViewById(R.id.wifiToggleButton);
         adhocServerToggleButton = (ToggleButton) findViewById(R.id.adhocServerToggleButton);
         adhocClientToggleButton = (ToggleButton) findViewById(R.id.adhocClientToggleButton);
+        
+        toggleDropDown = (Spinner) findViewById(R.id.toggleDropDown);
+        dropDownAdapter = ArrayAdapter.createFromResource(this, R.array.toggle_array, 
+        		android.R.layout.simple_spinner_item);
+        
+        dropDownAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        toggleDropDown.setAdapter(dropDownAdapter);
+        toggleDropDown.setOnItemSelectedListener(new toggleDropDownSelectedListener());
         
         wifiToggleButton.setOnClickListener(this);
         adhocServerToggleButton.setOnClickListener(this);
@@ -185,23 +198,11 @@ public class MainActivity extends Activity implements OnClickListener {
 				
 			} else if (arg0 == (View)allModeButton) {
 				if (allModeButton.getText().toString().contains("Disabled")) {
-					networkManager.setState(NetworkStates.ADHOC_CLIENT);
-					adhocServerToggleButton.setChecked(false);
-					adhocClientToggleButton.setChecked(true);
-					wifiToggleButton.setChecked(true);
-					allModeButton.setText("AClient");
+					setModeClient();
 				} else if (allModeButton.getText().toString().contains("Client")) {
-					networkManager.setState(NetworkStates.ADHOC_SERVER);
-					adhocServerToggleButton.setChecked(true);
-					adhocClientToggleButton.setChecked(false);
-					wifiToggleButton.setChecked(true);
-					allModeButton.setText("AServer");
+					setModeServer();
 				} else if (allModeButton.getText().toString().contains("Server")) {
-					networkManager.setState(NetworkStates.DISABLED);
-					adhocServerToggleButton.setChecked(false);
-					adhocClientToggleButton.setChecked(false);
-					wifiToggleButton.setChecked(false);
-					allModeButton.setText("Disabled");
+					setModeDisabled();
 				}
 			}
 			
@@ -216,6 +217,42 @@ public class MainActivity extends Activity implements OnClickListener {
 		
 	}
 	
+	public void setModeClient () {
+		networkManager.setState(NetworkStates.ADHOC_CLIENT);
+		adhocServerToggleButton.setChecked(false);
+		adhocClientToggleButton.setChecked(true);
+		wifiToggleButton.setChecked(true);
+		allModeButton.setText("Client");
+	}
+	
+	public void setModeServer () {
+		networkManager.setState(NetworkStates.ADHOC_SERVER);
+		adhocServerToggleButton.setChecked(true);
+		adhocClientToggleButton.setChecked(false);
+		wifiToggleButton.setChecked(true);
+		allModeButton.setText("Server");
+	}
+	
+	public void setModeDisabled () {
+		networkManager.setState(NetworkStates.DISABLED);
+		adhocServerToggleButton.setChecked(false);
+		adhocClientToggleButton.setChecked(false);
+		wifiToggleButton.setChecked(false);
+		allModeButton.setText("Disabled");
+	}
+	
+	public void setMode (String mode) {
+		if (mode.contains("Client")) {
+			setModeClient();			
+		} else if (mode.contains("Server")) {
+			setModeServer();
+		} else if (mode.contains("Disabled")){
+			setModeDisabled();
+		} else {
+			Log.e("Error: ", "unrecognized mode.");
+		}
+	}
+	
 	public void Toast(final String message) {
 		final Activity a = this;
 		a.runOnUiThread(new Runnable() {
@@ -223,5 +260,18 @@ public class MainActivity extends Activity implements OnClickListener {
 		        Toast.makeText(a, message, Toast.LENGTH_SHORT).show();
 		    }
 		});
+	}
+	
+	public class toggleDropDownSelectedListener implements OnItemSelectedListener {
+
+	    public void onItemSelected(AdapterView<?> parent,
+	        View view, int pos, long id) {
+	    	String selected = parent.getItemAtPosition(pos).toString();
+	      setMode(selected);
+	    }
+
+	    public void onNothingSelected(AdapterView parent) {
+	      // Do nothing.
+	    }
 	}
 }
