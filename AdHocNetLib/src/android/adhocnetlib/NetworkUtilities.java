@@ -162,7 +162,7 @@ public class NetworkUtilities {
 			}
 			
 			// checking whether an IP address has been obtained
-			attempt = 30;
+			attempt = 40;
 			while (attempt >= 0 ) {
 				if (!hasWifiIP()) {
 					message = "Attempt "+attempt+": Connected, but could not get IP address.";
