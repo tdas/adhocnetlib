@@ -53,44 +53,58 @@ public final class NetworkManager {
 		
 	}
 	
-	private class ListeningThread implements Runnable {
+	private class ListeningThread extends Thread implements Runnable {
 		private static final String TAG = "NetworkManager.ListeningThread";
-
+		ServerSocket serverSocket = null;
+		Socket clientSocket = null;
 		@Override
 		public void run() {
 			Log.d(TAG, "ListeningThread started.");
-			ServerSocket serverSocket = null;
 			String message = null;
 			try {
-				String wifiIP = netUitls.getIP();
+				String wifiIP = netUtils.getIP();
 				serverSocket = new ServerSocket(adhocServerListeningPort, 10, InetAddress.getByName(wifiIP));
+				Log.d(TAG, "Started listening.");
+				Toast ("Started listening.");
 				while (true) {
-					Log.d(TAG, "Started listening.");
-					Toast ("Started listening.");
-					Socket clientSocket = serverSocket.accept();
+					clientSocket = serverSocket.accept();
 					new Thread(new ReceivingThread(clientSocket)).start();
-				}
-				
+				}				
 			}  catch (UnknownHostException uhe) {
 				message= "ListeningThread exception: "+ uhe.toString();
-				Log.d(TAG, message);
+				Log.e(TAG, message);
 			} catch (IOException ioe) {
 				message= "ListeningThread exception: "+ ioe.toString();
-				Log.d(TAG, message);
+				Log.e(TAG, message);
 			} catch (Exception e) {
 				message= "ListeningThread exception: "+ e.toString();
-				Log.d(TAG, message);
+				Log.e(TAG, message);
+			} finally {
+				try {
+					if (serverSocket != null) serverSocket.close();
+				} catch (IOException e) {}
 			}
-			
-			try {
-				if (serverSocket != null) serverSocket.close();
-			} catch (IOException e) {
-				
+		}
+		
+		public void closeAllSockets() {
+			if(serverSocket != null) {
+				try {
+					serverSocket.close();
+				} catch (IOException e) {
+					Loge("Couldn't close server socket in listening thread: " + e);
+				}
+			}
+			if(clientSocket != null){
+				try {
+					clientSocket.close();
+				} catch (IOException e) {
+					Loge("Couldn't close client socket in listening thread: " + e);
+				}
 			}
 		}
 	}
 	
-	private class ReceivingThread implements Runnable {
+	private class ReceivingThread extends Thread implements Runnable {
 		
 		private static final String TAG = "NetworkManager.ReceivingThread";
 		private Socket socket = null;
@@ -104,7 +118,6 @@ public final class NetworkManager {
 			Log.d(TAG, "ReceivingThread started.");
 			String message = null;
 			try {
-				
 				// Receive client.id
 				// Get buffer items that have not been already sent to client.id
 				// Send server.id and the buffer items
@@ -117,12 +130,12 @@ public final class NetworkManager {
 				try {
 					synByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
 					synStr = new String(synByteArray);
+					Toast("Received " + synStr);
 					Log.d(TAG, "Received " + synStr);
 				} catch (Exception e) {
 					Loge("Failed in deserializing syn: " + e);
 					Toast("Failed in deserializing syn: " + e);
 				}
-				
 				
 				try {
 					BufferItem.serialize(new BufferItem("SYNACK".getBytes(), 20000,
@@ -134,36 +147,32 @@ public final class NetworkManager {
 					Toast("Failed in serializing synack: " + e);
 				}
 				
-				
 				String ackStr = "";
 				byte[] ackByteArray = null;
 				try {
 					ackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
 					ackStr = new String(ackByteArray);
+					Toast("Received " + ackStr);
 					Log.d(TAG, "Received " + ackStr);
 				} catch (Exception e) {
 					Loge("Failed in deserializing ack: " + e);
 					Toast("Failed in deserializing ack: " + e);
 				}
 				
-
-				
 				Toast("Data successfully received.");
 				
 			} catch (Exception e) {
 				message= "ReceivingThread exception: "+ e.toString();
 				Log.d(TAG, message);
-			}
-			try {
-				socket.close();
-			} catch (IOException e) {
-				
+			} finally {
+				try {
+					socket.close();
+				} catch (IOException e) {}
 			}
 		}
-		
 	}
 	
-	private class SendingThread implements Runnable {
+	private class SendingThread extends Thread implements Runnable {
 
 		private static final String TAG = "NetworkManager.SendingThread";
 		
@@ -179,7 +188,7 @@ public final class NetworkManager {
 				// Send the buffer items to server
 				
 				Thread.sleep(1000);
-				Socket socket = new Socket(netUitls.getWifiAdhocServerIP(),adhocServerListeningPort);
+				Socket socket = new Socket(netUtils.getWifiAdhocServerIP(),adhocServerListeningPort);
 				//BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				//PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
 				//output.println("SYN");
@@ -203,6 +212,7 @@ public final class NetworkManager {
 					try {
 						synackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
 						String synackStr = new String(synackByteArray);//input.readLine();
+						Toast("Received " + synackStr);
 						Logd("Received " + synackStr);
 						break;
 					} catch (Exception e) {
@@ -242,7 +252,6 @@ public final class NetworkManager {
 				Loge(message);
 			}
 		}
-		
 	}
 
 	// ---------------- Instance Fields ----------------  
@@ -255,8 +264,8 @@ public final class NetworkManager {
 	
 	private WifiManager wifiManager = null;
 	private Context context = null;
-	private NetworkUtilities netUitls = NetworkUtilities.getInstance();
-	private UUID uniqueID = UUID.randomUUID();
+	private NetworkUtilities netUtils = NetworkUtilities.getInstance();
+	public UUID uniqueID = UUID.randomUUID(); //CHANGE THIS TO PRIVATE
 	private BufferManager bufferManager = new BufferManager();
 	
 	private NetworkManagerState managerState = new NetworkManagerState();	
@@ -266,8 +275,8 @@ public final class NetworkManager {
 	private int adhocServerListeningPort = 12345;
 	private ReceivedDataListener receivedDataListener = null;
 	
-	private Thread listeningThread = null;
-	private Thread sendingThread = null;
+	private ListeningThread listeningThread = null;
+	private SendingThread sendingThread = null;
 	
 	// --------------- Class Fields --------------------
 	private static final String TAG = "NetworkManager";
@@ -285,7 +294,7 @@ public final class NetworkManager {
 	public boolean initialize (Context c, ReceivedDataListener listener) {
 		context = c;
 		wifiManager = (WifiManager) c.getSystemService(Context.WIFI_SERVICE); ;
-		netUitls.initialize(c);
+		netUtils.initialize(c);
 		receivedDataListener = listener;
 		setState(NetworkStates.DISABLED);
 		managerState.initialized = true;
@@ -357,31 +366,34 @@ public final class NetworkManager {
 			switch (state) {
 			case ADHOC_SERVER: 
 				if (listeningThread != null) {
-					listeningThread.stop();
+					listeningThread.interrupt();
 					listeningThread = null;
 				}
-				netUitls.stopAdhocServerMode(); 
+				netUtils.stopAdhocServerMode(); 
 				break;
 			case ADHOC_CLIENT: 
-				if (sendingThread != null) {
-					sendingThread.stop();
+				/*if (sendingThread != null) {
+					sendingThread.interrupt();
 					sendingThread = null;
-				}
-				netUitls.stopAdhocClientMode(); 
+				}*/
+				netUtils.stopAdhocClientMode(); 
 				managerState.adhocClientModeStarted = false; 
 				break;
 			}
 			
 			switch (newState) {
-			case DISABLED: netUitls.stopWifi(); break;
+			case DISABLED: 
+				netUtils.stopWifi(); break;
 			case ADHOC_SERVER: 
-				netUitls.startAdhocServerMode(); 
-				listeningThread = new Thread(new ListeningThread());
+				netUtils.startAdhocServerMode(); 
+				if(listeningThread == null) {
+					listeningThread = new ListeningThread();
+				}	
 				listeningThread.start();
 				break;
 			case ADHOC_CLIENT: 
 				managerState.adhocClientModeStarted = false;
-				netUitls.initiateAdhocClientMode(new NetworkUtilities.AdhocClientModeStartListener() {				
+				netUtils.initiateAdhocClientMode(new NetworkUtilities.AdhocClientModeStartListener() {				
 					@Override
 					public void onAdhocClientModeReady() {
 						OnAdhocClientModeStarted();
@@ -409,7 +421,7 @@ public final class NetworkManager {
 	private void OnAdhocClientModeStarted() {
 		managerState.adhocClientModeStarted = true;
 		// get ip address and then connect at a predefined port
-		sendingThread = new Thread(new SendingThread());
+		sendingThread = new SendingThread();
 		sendingThread.start();
 	}
 

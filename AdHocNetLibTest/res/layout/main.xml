@@ -20,9 +20,6 @@
             <TextView android:layout_width="fill_parent" android:gravity="left|center_vertical" android:layout_height="fill_parent" android:id="@+id/TextView01" android:textStyle="bold" android:textSize="0.1in" android:text="Adhoc Client"></TextView>
             <ToggleButton android:layout_width="wrap_content" android:text="AdhocClient" android:layout_height="wrap_content" android:id="@+id/adhocClientToggleButton"></ToggleButton>
         </TableRow>
-        <TableRow android:layout_width="wrap_content" android:id="@+id/tableRow6" android:layout_height="wrap_content">
-            <TextView android:layout_width="fill_parent" android:gravity="left|center_vertical" android:layout_height="fill_parent" android:textSize="0.1in" android:textStyle="bold" android:id="@+id/TextView02" android:text="Disabled/Server/Client"></TextView>
-        </TableRow>
         <TableRow android:id="@+id/tableRow4" android:layout_width="wrap_content" android:layout_height="wrap_content">
             <Button android:text="RandomButton" android:id="@+id/randomButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone"></Button>
         </TableRow>
@@ -32,5 +29,6 @@
         
     </TableLayout>
     <Spinner android:prompt="@string/toggle_prompt" android:layout_width="match_parent" android:id="@+id/toggleDropDown" android:layout_height="wrap_content"></Spinner>
-    <Button android:text="Exit" android:id="@+id/exitButton" android:layout_height="wrap_content" android:layout_width="fill_parent"></Button>
+    <TextView android:textStyle="bold" android:text="TextView" android:id="@+id/TextView02" android:gravity="left|center_vertical" android:layout_width="fill_parent" android:visibility="visible" android:textSize="0.4in" android:layout_height="250dip"></TextView>
+    <Button android:text="Exit" android:id="@+id/exitButton" android:layout_width="match_parent" android:layout_height="wrap_content"></Button>
 </LinearLayout>

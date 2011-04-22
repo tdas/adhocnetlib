@@ -27,7 +27,7 @@ public class BufferManager {
 	}
 	
 	public static class BufferItem implements Serializable {
-		Data data = null;
+		public Data data = null;
 		Integer hash = 0;
 		long ttl = 0;
 		HashSet<UUID> nodeIDs = new HashSet<UUID>();
