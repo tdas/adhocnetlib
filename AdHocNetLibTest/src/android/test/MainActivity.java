@@ -82,6 +82,16 @@ public class MainActivity extends Activity implements OnClickListener {
         adhocClientToggleButton.setOnClickListener(this);
         
         networkManager.initialize(this);
+        networkManager.registerCallBackForNetworkStateChange(new NetworkManager.NetworkStateChangeListener() {			
+			@Override
+			public void onNetworkStateChange(NetworkStates state) {
+				switch (state) {
+				case ADHOC_CLIENT: setModeOnUIThread("Client"); break;
+				case ADHOC_SERVER: setModeOnUIThread("Server"); break;
+				case DISABLED: setModeOnUIThread("Disabled"); break;
+				}				
+			}
+		});
         networkManager.setSwitchModeToAutomatic();
         networkManager.start();
         NetworkManager.NetworkStates state = networkManager.getState();
@@ -248,7 +258,16 @@ public class MainActivity extends Activity implements OnClickListener {
 		display.setTextColor(Color.WHITE);	
 	}
 	
-	public void setMode (String mode) {
+	public void setModeOnUIThread(final String mode) {
+		final Activity a = this;		
+		a.runOnUiThread(new Runnable() {
+		    public void run() {
+		    	setMode(mode);
+		    }
+		});		
+	}
+	
+	public void setMode (String mode) {		
 		display.setText("Please wait...");
 		display.setTextColor(Color.RED);
 		if (mode.contains("Client")) {

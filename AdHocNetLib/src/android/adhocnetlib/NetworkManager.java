@@ -39,16 +39,20 @@ public final class NetworkManager {
 		public Timestamp lastSwitchTime = new Timestamp(new Date().getTime());
 		public Timestamp lastActivityTime = new Timestamp(new Date().getTime());
 		private boolean adhocClientModeStarted = false;
+		public boolean successfullySent = false;
 	}
 
 	public static interface ReceivedDataListener {
 		public void onReceiveData(byte[] data);
 	}
 	
+	public static interface NetworkStateChangeListener {
+		public void onNetworkStateChange(NetworkStates state);
+	}
+	
 	private class StateChangeTimerTask extends TimerTask {
 		@Override
 		public void run() {			
-			//Toast("Changing state...");
 			NetworkManager.getInstance().changeState();			
 		}
 		
@@ -65,11 +69,12 @@ public final class NetworkManager {
 			try {
 				String wifiIP = netUtils.getIP();
 				serverSocket = new ServerSocket(adhocServerListeningPort, 10, InetAddress.getByName(wifiIP));
-				serverSocket.setSoTimeout((int)NetworkSwitchPolicy.Default.adhocClientTime - 1000);
+				serverSocket.setSoTimeout((int)(NetworkSwitchPolicy.Default.adhocServerTime - 100));
 				Log.d(TAG, "Started listening.");
 				Toast ("Started listening.");
 				while (state == NetworkStates.ADHOC_SERVER) {
 					clientSocket = serverSocket.accept();
+					managerState.lastActivityTime = new Timestamp(new Date().getTime());
 					new Thread(new ReceivingThread(clientSocket)).start();
 				}				
 			}  catch (UnknownHostException uhe) {
@@ -127,8 +132,6 @@ public final class NetworkManager {
 				// Send server.id and the buffer items
 				// Receive buffer items and add it to the buffer
 				
-				//BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				//PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
 				byte[] synByteArray = null;
 				String synStr = "";
 				try {
@@ -139,6 +142,7 @@ public final class NetworkManager {
 				} catch (Exception e) {
 					Loge("Failed in deserializing syn: " + e);
 					Toast("Failed in deserializing syn: " + e);
+					throw e; 
 				}
 				
 				try {
@@ -149,6 +153,7 @@ public final class NetworkManager {
 				} catch (Exception e) {
 					Loge("Failed in serializing synack: " + e);
 					Toast("Failed in serializing synack: " + e);
+					throw e;
 				}
 				
 				String ackStr = "";
@@ -161,6 +166,7 @@ public final class NetworkManager {
 				} catch (Exception e) {
 					Loge("Failed in deserializing ack: " + e);
 					Toast("Failed in deserializing ack: " + e);
+					throw e;
 				}
 				
 				Toast("Data successfully received.");
@@ -185,7 +191,9 @@ public final class NetworkManager {
 			Log.d(TAG, "SendingThread started.");
 			String message = null;
 			try {
+				managerState.successfullySent = false;
 				int attempts = 20;
+				managerState.lastActivityTime = new Timestamp(new Date().getTime());
 				// Send client.id
 				// Receive server.id and buffer items and add them to the buffer
 				// Get buffer items that have not been already sent to server.id
@@ -194,65 +202,57 @@ public final class NetworkManager {
 				Thread.sleep(1000);
 				
 				while (attempts > 0) {
-					try{
-						socket = new Socket(netUtils.getWifiAdhocServerIP(),adhocServerListeningPort);
-						Logd("Socket created in sending thread");
-						break;
-					} catch (Exception e) {
-						Loge("Exception while creating socket in sending thread: " + e);
-					}
-					attempts--;
-				}
-				attempts = 20;
-				//BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				//PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
-				//output.println("SYN");
-				while (attempts > 0) {
 					try {
-						BufferItem.serialize(new BufferItem("SYN".getBytes(), 20000,
-								NetworkManager.getInstance().uniqueID), 
-								socket.getOutputStream());
-						Logd("Sent SYN");
+						try{
+							socket = new Socket(netUtils.getWifiAdhocServerIP(),adhocServerListeningPort);
+							Logd("Socket created in sending thread");
+						} catch (Exception e) {
+							Loge("Exception while creating socket in sending thread: " + e);
+							throw e;
+						}
+					
+						try {
+							BufferItem.serialize(new BufferItem("SYN".getBytes(), 20000,
+									NetworkManager.getInstance().uniqueID), 
+									socket.getOutputStream());
+							Logd("Sent SYN");							
+						} catch (Exception e) {
+							Loge("Exception in serializing syn: " + e);
+							throw e;
+						}
+					
+						byte[] synackByteArray = null;
+						try {
+							synackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
+							String synackStr = new String(synackByteArray);//input.readLine();
+							Toast("Received " + synackStr);
+							Logd("Received " + synackStr);
+						} catch (Exception e) {
+							Loge("Exception in deserializing synack: " + e);
+							throw e;
+						}
+					
+					
+						try {
+							BufferItem.serialize(new BufferItem("ACK".getBytes(), 20000,
+									NetworkManager.getInstance().uniqueID), 
+									socket.getOutputStream());
+							Logd("Sent ACK");
+						} catch (Exception e) {
+							Loge("Exception in serializing ack: " + e);
+							throw e;
+						} 
 						break;
-						
-					} catch (Exception e) {
-						Loge("Exception in serializing syn: " + e);
-					}
-					attempts--;
+					} catch (Exception e) { 
+						Loge("Exception in SendingThread at " + attempts + " attempt: " + e);
+						attempts--;
+						if (attempts == 0) {
+							throw new Exception ("Finally gave up!");
+						}
+					}					
 				}
-				attempts = 20;
 				
-				byte[] synackByteArray = null;
-				while (attempts > 0){
-					try {
-						synackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
-						String synackStr = new String(synackByteArray);//input.readLine();
-						Toast("Received " + synackStr);
-						Logd("Received " + synackStr);
-						break;
-					} catch (Exception e) {
-						Loge("Exception in deserializing synack: " + e);
-					}
-					attempts--;
-				}
-				attempts = 20;
-				
-				//output.println("ACK");
-				while (attempts > 0) {
-					try {
-						BufferItem.serialize(new BufferItem("ACK".getBytes(), 20000,
-								NetworkManager.getInstance().uniqueID), 
-								socket.getOutputStream());
-						Logd("Sent ACK");
-						break;
-					} catch (Exception e) {
-						Loge("Exception in serializing ack: " + e);
-					}
-					attempts--;
-				}
-				attempts = 20;
-				
-				
+				managerState.successfullySent = true;
 				Toast("Data successfully sent.");
 			} catch (Exception e) {
 				message= "SendingThread exception: "+ e.toString();
@@ -285,6 +285,7 @@ public final class NetworkManager {
 	private long stateChangeTimerDelay = 500;
 	private int adhocServerListeningPort = 12345;
 	private ReceivedDataListener receivedDataListener = null;
+	private NetworkStateChangeListener networkStateChangeListener = null;
 	
 	private ListeningThread listeningThread = null;
 	private SendingThread sendingThread = null;
@@ -330,7 +331,6 @@ public final class NetworkManager {
 		if (!checkIfStarted()) {
 			managerState.started = true;
 			if (switchMode == NetworkSwitchModes.AUTOMATIC) {
-				//Toast("Scheduling state change");
 				stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay, stateChangeTimerDelay);		
 			}
 			Logd("Started");
@@ -352,9 +352,16 @@ public final class NetworkManager {
 		return bufferManager.createNewItem(data, 120 * 1000, uniqueID);
 	}
 
-	public boolean registerCallBackForReceivedData() {
+	public boolean registerCallBackForReceivedData(ReceivedDataListener listener) {
 		if (!checkIfInitialized()) return false;
+		receivedDataListener = listener;
 		return false;
+	}
+	
+	public boolean registerCallBackForNetworkStateChange(NetworkStateChangeListener listener ) {
+		if (!checkIfInitialized())  return false;
+		networkStateChangeListener = listener;
+		return true;
 	}
 	
 	private boolean checkIfInitialized() {
@@ -374,8 +381,7 @@ public final class NetworkManager {
 	public synchronized void setState (NetworkStates newState) {
 		if (state != newState) {
 			managerState.lastSwitchTime = new Timestamp(new Date().getTime());
-			managerState.lastActivityTime = managerState.lastSwitchTime;
-						
+								
 			switch (state) {
 			case ADHOC_SERVER: 
 				if (listeningThread != null) {
@@ -422,7 +428,10 @@ public final class NetworkManager {
 				break;
 			default: Loge("Unexpected new state: " + newState);
 			}
-			state = newState;		
+			state = newState;
+			if (networkStateChangeListener != null) {
+				networkStateChangeListener.onNetworkStateChange(state);
+			}
 		}
 	}
 	
@@ -431,9 +440,8 @@ public final class NetworkManager {
 	}
 	
 	private  void changeState() {
-		if(!checkIfStarted()) return;
-		//Toast("Getting new state...");		
-		NetworkStates newState =  switchPolicy.getNextState(state, managerState.lastSwitchTime, managerState.lastActivityTime);
+		if(!checkIfStarted()) return;		
+		NetworkStates newState =  switchPolicy.getNextState(state, managerState);
 		if(state != newState) setState(newState);
 	}
 	
@@ -444,7 +452,7 @@ public final class NetworkManager {
 		sendingThread.start();
 	}
 
-	private void Toast(final String message) {
+	public void Toast(final String message) {
 		final Activity a = (Activity)context;
 		a.runOnUiThread(new Runnable() {
 		    public void run() {
