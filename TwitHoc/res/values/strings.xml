@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TwitHoc</string>
+    <string name="timeline_label">Messages</string>
+    <string name="new_message_label">Post New</string>
+    <string name="manage_groups_label">Manage Groups</string>
+    <string name="no_recipients_selected">Select at least one recipient group.</string>
+    <string name="no_message_to_send">No message to post!</string>
+    <string name="post_message_failed">Failed to post message.</string>
+    <string name="post_message_succeeded">Message delivered!</string>
+    <string name="select_groups_dialog_title">Select recipients</string>
+    <string name="add_group_label">Add Group</string>
+    <string name="edit_group_label">Edit Group</string>
+    <string name="create_group_label">Create Group</string>
+    <string name="update_group_label">Update</string>
+    <string name="delete_group_label">Delete</string>
+    <string name="timeline_no_messages">No messages to display!</string>
+</resources>
