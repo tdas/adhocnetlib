@@ -81,11 +81,10 @@ public class MainActivity extends Activity implements OnClickListener {
         adhocServerToggleButton.setOnClickListener(this);
         adhocClientToggleButton.setOnClickListener(this);
         
-        //WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE); 
         networkManager.initialize(this);
-        networkManager.setSwitchModeToManual();
+        networkManager.setSwitchModeToAutomatic();
         networkManager.start();
-        
+        NetworkManager.NetworkStates state = networkManager.getState();
     }
 
 	@Override
@@ -209,35 +208,44 @@ public class MainActivity extends Activity implements OnClickListener {
 	
 	public void setModeClient () {
 		networkManager.setState(NetworkStates.ADHOC_CLIENT);
+		setUIModeClient();
+	}
+	
+	public void setUIModeClient() {
 		adhocServerToggleButton.setChecked(false);
 		adhocClientToggleButton.setChecked(true);
 		wifiToggleButton.setChecked(true);
 		allModeButton.setText("Client");
 		display.setText("Client");
 		display.setTextColor(Color.WHITE);
-		
 	}
 	
 	public void setModeServer () {
 		networkManager.setState(NetworkStates.ADHOC_SERVER);
+		setUIModeServer();		
+	}
+	
+	public void setUIModeServer() {
 		adhocServerToggleButton.setChecked(true);
 		adhocClientToggleButton.setChecked(false);
 		wifiToggleButton.setChecked(true);
 		allModeButton.setText("Server");
 		display.setText("Server");
 		display.setTextColor(Color.WHITE);
-		
 	}
 	
 	public void setModeDisabled () {
 		networkManager.setState(NetworkStates.DISABLED);
+		setUIModeDisabled();	
+	}
+	
+	public void setUIModeDisabled () {
 		adhocServerToggleButton.setChecked(false);
 		adhocClientToggleButton.setChecked(false);
 		wifiToggleButton.setChecked(false);
 		allModeButton.setText("Disabled");
 		display.setText("Disabled");
-		display.setTextColor(Color.WHITE);
-		
+		display.setTextColor(Color.WHITE);	
 	}
 	
 	public void setMode (String mode) {

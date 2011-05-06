@@ -18,8 +18,13 @@ public class NetworkSwitchPolicy {
 	}
 
 	public NetworkManager.NetworkStates getNextState(NetworkManager.NetworkStates curState, Timestamp lastSwitchTime, Timestamp lastActivityTime) {
-		NetworkManager.NetworkStates nextState = NetworkManager.NetworkStates.DISABLED; 
+		NetworkManager.NetworkStates nextState = curState; 
 		Date now = new Date();
+		Logd("lastSwitchTime = " + lastSwitchTime.getTime());
+		Logd("now = " + now.getTime());
+		Logd("curState = " + curState);
+		Logd("adhocClientTime = " + adhocClientTime);
+		Logd("adhocServerTime = " + adhocServerTime);
 		switch (curState) {
 		case DISABLED:
 			if (now.getTime() - lastSwitchTime.getTime() > disabledTime) 
@@ -31,7 +36,7 @@ public class NetworkSwitchPolicy {
 			break;
 		case ADHOC_CLIENT:
 			if (now.getTime() - lastSwitchTime.getTime() > adhocClientTime) 
-				nextState = NetworkManager.NetworkStates.ADHOC_CLIENT;
+				nextState = NetworkManager.NetworkStates.DISABLED;
 			break;
 		default: Loge("Unexpected state: "+ curState.toString());
 		}
@@ -39,7 +44,7 @@ public class NetworkSwitchPolicy {
 		return nextState;
 	}
 	
-	public static final NetworkSwitchPolicy Default = new NetworkSwitchPolicy(0, 10, 12);
+	public static final NetworkSwitchPolicy Default = new NetworkSwitchPolicy(15000, 60000, 60000);
 	
 	private static void Logd(String msg) {
 		Log.d(TAG, msg);

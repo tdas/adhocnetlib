@@ -36,8 +36,8 @@ public final class NetworkManager {
 		public boolean initialized = false;
 		public boolean newMessage = false;
 		
-		public Timestamp lastSwitchTime = new Timestamp(0);
-		public Timestamp lastActivityTime = new Timestamp(0);
+		public Timestamp lastSwitchTime = new Timestamp(new Date().getTime());
+		public Timestamp lastActivityTime = new Timestamp(new Date().getTime());
 		private boolean adhocClientModeStarted = false;
 	}
 
@@ -48,6 +48,7 @@ public final class NetworkManager {
 	private class StateChangeTimerTask extends TimerTask {
 		@Override
 		public void run() {			
+			//Toast("Changing state...");
 			NetworkManager.getInstance().changeState();			
 		}
 		
@@ -64,9 +65,10 @@ public final class NetworkManager {
 			try {
 				String wifiIP = netUtils.getIP();
 				serverSocket = new ServerSocket(adhocServerListeningPort, 10, InetAddress.getByName(wifiIP));
+				serverSocket.setSoTimeout((int)NetworkSwitchPolicy.Default.adhocClientTime - 1000);
 				Log.d(TAG, "Started listening.");
 				Toast ("Started listening.");
-				while (true) {
+				while (state == NetworkStates.ADHOC_SERVER) {
 					clientSocket = serverSocket.accept();
 					new Thread(new ReceivingThread(clientSocket)).start();
 				}				
@@ -81,7 +83,9 @@ public final class NetworkManager {
 				Log.e(TAG, message);
 			} finally {
 				try {
-					if (serverSocket != null) serverSocket.close();
+					if (serverSocket != null) {
+						while(!serverSocket.isClosed()) serverSocket.close();
+					}
 				} catch (IOException e) {}
 			}
 		}
@@ -175,7 +179,7 @@ public final class NetworkManager {
 	private class SendingThread extends Thread implements Runnable {
 
 		private static final String TAG = "NetworkManager.SendingThread";
-		
+		private Socket socket = null;
 		@Override
 		public void run() {
 			Log.d(TAG, "SendingThread started.");
@@ -188,7 +192,18 @@ public final class NetworkManager {
 				// Send the buffer items to server
 				
 				Thread.sleep(1000);
-				Socket socket = new Socket(netUtils.getWifiAdhocServerIP(),adhocServerListeningPort);
+				
+				while (attempts > 0) {
+					try{
+						socket = new Socket(netUtils.getWifiAdhocServerIP(),adhocServerListeningPort);
+						Logd("Socket created in sending thread");
+						break;
+					} catch (Exception e) {
+						Loge("Exception while creating socket in sending thread: " + e);
+					}
+					attempts--;
+				}
+				attempts = 20;
 				//BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				//PrintWriter output = new PrintWriter(socket.getOutputStream(),true);
 				//output.println("SYN");
@@ -239,17 +254,15 @@ public final class NetworkManager {
 				
 				
 				Toast("Data successfully sent.");
-				
-				
-			}  catch (UnknownHostException uhe) {
-				message= "SendingThread exception: "+ uhe.toString();
-				Loge(message);
-			} catch (IOException ioe) {
-				message= "SendingThread exception: "+ ioe.toString();
-				Loge(message);
 			} catch (Exception e) {
 				message= "SendingThread exception: "+ e.toString();
 				Loge(message);
+			} finally {
+				try{
+					socket.close();
+				} catch (Exception e) {
+					Logd("Error while trying to close socket in sending thread: " + e);
+				}
 			}
 		}
 	}
@@ -259,8 +272,6 @@ public final class NetworkManager {
 	private NetworkStates state = NetworkStates.DISABLED;
 	private NetworkSwitchModes switchMode = NetworkSwitchModes.AUTOMATIC;	
 	private NetworkSwitchPolicy switchPolicy = NetworkSwitchPolicy.Default; 
-	
-	
 	
 	private WifiManager wifiManager = null;
 	private Context context = null;
@@ -305,7 +316,7 @@ public final class NetworkManager {
 		switchMode = NetworkSwitchModes.MANUAL;
 	}
 	
-	public void setSwitchModeToAutomaticl() {
+	public void setSwitchModeToAutomatic() {
 		switchMode = NetworkSwitchModes.AUTOMATIC;
 	}
 	
@@ -318,11 +329,13 @@ public final class NetworkManager {
 	public synchronized boolean start() {
 		if (!checkIfStarted()) {
 			managerState.started = true;
+			if (switchMode == NetworkSwitchModes.AUTOMATIC) {
+				//Toast("Scheduling state change");
+				stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay, stateChangeTimerDelay);		
+			}
 			Logd("Started");
 		}
-		if (switchMode == NetworkSwitchModes.AUTOMATIC) {
-			stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay);		
-		}
+		
 		return managerState.started;
 	}
 	
@@ -362,33 +375,38 @@ public final class NetworkManager {
 		if (state != newState) {
 			managerState.lastSwitchTime = new Timestamp(new Date().getTime());
 			managerState.lastActivityTime = managerState.lastSwitchTime;
-			
+						
 			switch (state) {
 			case ADHOC_SERVER: 
 				if (listeningThread != null) {
 					listeningThread.interrupt();
 					listeningThread = null;
 				}
-				netUtils.stopAdhocServerMode(); 
+				netUtils.stopAdhocServerMode();
+				Logd("Server mode stopped");
+				Toast("Server mode stopped");
 				break;
 			case ADHOC_CLIENT: 
-				/*if (sendingThread != null) {
-					sendingThread.interrupt();
-					sendingThread = null;
-				}*/
 				netUtils.stopAdhocClientMode(); 
 				managerState.adhocClientModeStarted = false; 
+				Logd("Client mode stopped");
+				Toast("Client mode stopped");
 				break;
 			}
 			
 			switch (newState) {
 			case DISABLED: 
-				netUtils.stopWifi(); break;
+				netUtils.stopWifi();
+				Logd("All modes disabled");
+				Toast("All modes disabled");
+				break;
 			case ADHOC_SERVER: 
 				netUtils.startAdhocServerMode(); 
 				if(listeningThread == null) {
 					listeningThread = new ListeningThread();
 				}	
+				Logd("Server mode started");
+				Toast("Server mode started");
 				listeningThread.start();
 				break;
 			case ADHOC_CLIENT: 
@@ -398,7 +416,9 @@ public final class NetworkManager {
 					public void onAdhocClientModeReady() {
 						OnAdhocClientModeStarted();
 					}				
-				});				
+				});
+				Logd("Client mode started");
+				Toast("Client mode started");
 				break;
 			default: Loge("Unexpected new state: " + newState);
 			}
@@ -406,16 +426,15 @@ public final class NetworkManager {
 		}
 	}
 	
+	public NetworkManager.NetworkStates getState () {
+		return state;
+	}
+	
 	private  void changeState() {
-		if (!checkIfStarted()) return;
-		stateChangeTimer.cancel();
-		
+		if(!checkIfStarted()) return;
+		//Toast("Getting new state...");		
 		NetworkStates newState =  switchPolicy.getNextState(state, managerState.lastSwitchTime, managerState.lastActivityTime);
-		setState(newState);
-		
-		if (switchMode == NetworkSwitchModes.AUTOMATIC) {
-			stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay);		
-		}
+		if(state != newState) setState(newState);
 	}
 	
 	private void OnAdhocClientModeStarted() {
