@@ -5,6 +5,7 @@ import android.app.TabActivity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.widget.TabHost;
 
 public class TwitHocActivity extends TabActivity {
@@ -26,7 +27,7 @@ public class TwitHocActivity extends TabActivity {
 
     // Initialize NetworkManager
     NetworkManager.getInstance().initialize(this, null);
-    // NetworkManager.getInstance().start();
+    NetworkManager.getInstance().start();
 
     // Get the activity TabHost
     tabHost = getTabHost();
@@ -85,6 +86,15 @@ public class TwitHocActivity extends TabActivity {
       messageData.createNew("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "3", 300000);
     }
   }  
+  
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+     if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+    	 NetworkManager.getInstance().destroy();
+    	 System.exit(0);
+     }
+     return super.onKeyDown(keyCode, event);
+  }
   
   public void switchTab(String tabTag){
     tabHost.setCurrentTabByTag(tabTag);

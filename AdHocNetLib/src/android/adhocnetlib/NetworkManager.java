@@ -355,7 +355,9 @@ public final class NetworkManager {
 	
 	public boolean sendData(byte[] data, long ttl) {
 		if (!checkIfStarted()) return false;
-		return bufferManager.createNewItem(data, ttl, uniqueID);
+		boolean result =  bufferManager.createNewItem(data, ttl, uniqueID);
+		Toast("BufferManager has "+ bufferManager.getBufferSize()+" items.");
+		return result;
 	}
 
 	public boolean registerCallBackForReceivedData(ReceivedDataListener listener) {
@@ -396,13 +398,13 @@ public final class NetworkManager {
 				}
 				netUtils.stopAdhocServerMode();
 				Logd("Server mode stopped");
-				Toast("Server mode stopped");
+				//Toast("Server mode stopped");
 				break;
 			case ADHOC_CLIENT: 
 				netUtils.stopAdhocClientMode(); 
 				managerState.adhocClientModeStarted = false; 
 				Logd("Client mode stopped");
-				Toast("Client mode stopped");
+				//Toast("Client mode stopped");
 				break;
 			}
 			
@@ -410,7 +412,7 @@ public final class NetworkManager {
 			case DISABLED: 
 				netUtils.stopWifi();
 				Logd("All modes disabled");
-				Toast("All modes disabled");
+				//Toast("All modes disabled");
 				break;
 			case ADHOC_SERVER: 
 				netUtils.startAdhocServerMode(); 
@@ -418,7 +420,7 @@ public final class NetworkManager {
 					listeningThread = new ListeningThread();
 				}	
 				Logd("Server mode started");
-				Toast("Server mode started");
+				//Toast("Server mode started");
 				listeningThread.start();
 				break;
 			case ADHOC_CLIENT: 
@@ -430,7 +432,7 @@ public final class NetworkManager {
 					}				
 				});
 				Logd("Client mode started");
-				Toast("Client mode started");
+				//Toast("Client mode started");
 				break;
 			default: Loge("Unexpected new state: " + newState);
 			}
@@ -445,7 +447,15 @@ public final class NetworkManager {
 		return state;
 	}
 	
-	private  void changeState() {
+	public void destroy() {
+		if (state == NetworkStates.ADHOC_SERVER) {
+			netUtils.stopAdhocServerMode();
+		} else if (state == NetworkStates.ADHOC_CLIENT) {
+			netUtils.stopAdhocClientMode();
+		}
+	}
+	
+	private void changeState() {
 		if(!checkIfStarted()) return;		
 		NetworkStates newState =  switchPolicy.getNextState(state, managerState);
 		if (state != newState) setState(newState);

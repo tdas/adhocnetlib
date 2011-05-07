@@ -127,10 +127,7 @@ public class NewMessageActivity extends Activity
 	} catch (IOException e1) {
 		e1.printStackTrace();
 	}
-	
-    NetworkManager.getInstance().sendData(bos.toByteArray(), Message.expireAfter); 
-    
-    return false;    
+    return NetworkManager.getInstance().sendData(bos.toByteArray(), Message.expireAfter); 
   }
   
   private Dialog createGroupSelectionDialog() {

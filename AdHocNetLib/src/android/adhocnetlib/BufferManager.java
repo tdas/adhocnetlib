@@ -112,6 +112,10 @@ public class BufferManager {
 		return bufferedItems.values();
 	}
 
+	public int getBufferSize() {
+		return bufferedItems.size();
+	}
+	
 	private boolean addItem_ (BufferItem item) {
 		if (isDuplicate(item)) {
 			// merge the node id list
