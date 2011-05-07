@@ -116,11 +116,11 @@ public class TwitHocActivity extends TabActivity {
   
   @Override
   public boolean onKeyDown(int keyCode, KeyEvent event) {
-     if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-    	 NetworkManager.getInstance().destroy();
-    	 System.exit(0);
-     }
-     Toast.makeText(this,"Exiting", Toast.LENGTH_SHORT ).show();
+//     if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+//    	 NetworkManager.getInstance().destroy();
+//    	 System.exit(0);
+//     }
+//     Toast.makeText(this,"Exiting", Toast.LENGTH_SHORT ).show();
      return super.onKeyDown(keyCode, event);
   }
   

@@ -108,7 +108,7 @@ public class MessageData extends SQLiteOpenHelper {
     String order = POSTED_AT;
 
     SQLiteDatabase db = getReadableDatabase();
-    Cursor cursor = db.query(TABLE_NAME, from, null, null, null, null, order);
+    Cursor cursor = db.query(TABLE_NAME, from, null, null, null, null, order + " DESC");
     activity.startManagingCursor(cursor);
 
     return cursor;
