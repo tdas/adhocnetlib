@@ -67,15 +67,33 @@ public class MessageData extends SQLiteOpenHelper {
   }
   
   // Creates a new record in the database
-  public void createNew(String message, String groupId, int expireAfter) {
+  public void createNew(String message, String groupID, int expireAfter) {
     SQLiteDatabase db = getWritableDatabase();
 
     ContentValues values = new ContentValues();
     values.put(MESSAGE_ID, UUID.randomUUID().toString());
     values.put(MESSAGE, message);
-    values.put(GROUP_ID, groupId);
+    values.put(GROUP_ID, groupID);
     values.put(POSTED_AT, System.currentTimeMillis());
     values.put(EXPIRE_AFTER, expireAfter);
+
+    try{
+      db.insertOrThrow(TABLE_NAME, null, values);
+    } catch (Exception e) {
+      System.out.println(e.toString());
+    }
+  }
+
+  // Creates a new record in the database
+  public void createNew(Message message) {
+    SQLiteDatabase db = getWritableDatabase();
+
+    ContentValues values = new ContentValues();
+    values.put(MESSAGE_ID, message.messageID);
+    values.put(MESSAGE, message.message);
+    values.put(GROUP_ID, message.groupID);
+    values.put(POSTED_AT, message.postedAt);
+    values.put(EXPIRE_AFTER, Message.expireAfter);
 
     try{
       db.insertOrThrow(TABLE_NAME, null, values);

@@ -25,7 +25,7 @@
 	      <EditText
 	        android:id="@+id/et_send_to"
 	        android:layout_span="3"
-	        android:hint="Tap to manage recipients..."
+	        android:hint="Tap to add/update recipient..."
 	        android:layout_height="75dip"
 	        android:textSize="@dimen/text_size"
 	        android:inputType="none"

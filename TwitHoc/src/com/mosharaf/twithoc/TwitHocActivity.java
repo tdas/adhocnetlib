@@ -1,5 +1,6 @@
 package com.mosharaf.twithoc;
 
+import android.adhocnetlib.NetworkManager;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -22,6 +23,10 @@ public class TwitHocActivity extends TabActivity {
     
     // Resource object to get Drawables
     Resources res = getResources(); 
+
+    // Initialize NetworkManager
+    NetworkManager.getInstance().initialize(this, null);
+    // NetworkManager.getInstance().start();
 
     // Get the activity TabHost
     tabHost = getTabHost();

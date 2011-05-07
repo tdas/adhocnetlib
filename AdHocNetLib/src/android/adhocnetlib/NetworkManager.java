@@ -335,6 +335,10 @@ public final class NetworkManager {
 			if (switchMode == NetworkSwitchModes.AUTOMATIC) {
 				stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay, stateChangeTimerDelay);		
 			}
+			if (networkStateChangeListener != null) {
+				networkStateChangeListener.onNetworkStateChange(state);
+			}
+			Toast("Started");
 			Logd("Started");
 		}
 		
@@ -444,7 +448,7 @@ public final class NetworkManager {
 	private  void changeState() {
 		if(!checkIfStarted()) return;		
 		NetworkStates newState =  switchPolicy.getNextState(state, managerState);
-		if(state != newState) setState(newState);
+		if (state != newState) setState(newState);
 	}
 	
 	private void OnAdhocClientModeStarted() {

@@ -1,5 +1,10 @@
 package com.mosharaf.twithoc;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
+import android.adhocnetlib.NetworkManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -24,6 +29,10 @@ public class NewMessageActivity extends Activity
   protected EditText etMessage;
   protected Button btPost;
   protected Button btCancel;
+  
+  // Variable used to keep track of which recipient was selected.
+  private String recipientGroup;
+  private String recipientGroupID;
   
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -81,8 +90,8 @@ public class NewMessageActivity extends Activity
     if (v == btPost) {
       if (etRecipients.getText().length() != 0) {
         if (etMessage.getText().length() != 0) {
-          // If there is a message and at least one recipient, try to post
-          if (postMessage(etMessage.getText().toString())) {
+          // If there is a message and a recipient, try to post
+          if (postMessage(etMessage.getText().toString(), recipientGroupID)) {        	
             // Notify success
             Toast.makeText(this, getString(R.string.post_message_succeeded), Toast.LENGTH_SHORT).show();
             
@@ -107,8 +116,19 @@ public class NewMessageActivity extends Activity
     }
   }
   
-  // TODO How to pass the recipients?
-  private boolean postMessage(String message) {   
+  private boolean postMessage(String messageToSend, String groupID) { 
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    Message message = new Message(messageToSend, groupID);
+    ObjectOutputStream oos;
+	
+    try {
+		oos = new ObjectOutputStream(bos);
+		oos.writeObject(message);
+	} catch (IOException e1) {
+		e1.printStackTrace();
+	}
+	
+    NetworkManager.getInstance().sendData(bos.toByteArray(), Message.expireAfter); 
     
     return false;    
   }
@@ -127,26 +147,30 @@ public class NewMessageActivity extends Activity
   }
   
   private Dialog createGroupSelectionDialog() {
-    Cursor cursor = groupData.all(this);
+    final Cursor cursor = groupData.all(this);
 
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.select_groups_dialog_title);
-    builder.setMultiChoiceItems(cursor, GroupData.IS_SELECTED, GroupData.NAME, new DialogInterface.OnMultiChoiceClickListener() {
-        public void onClick(DialogInterface dialog, int whichItem, boolean isChecked) {
-          Toast.makeText(getApplicationContext(), "Clicked " + whichItem + " to " + isChecked, Toast.LENGTH_SHORT).show();
+    builder.setSingleChoiceItems(cursor, -1, GroupData.NAME, new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int whichItem) {
+          cursor.moveToPosition(whichItem);
+          recipientGroup = cursor.getString(cursor.getColumnIndex(GroupData.NAME));
+          recipientGroupID = cursor.getString(cursor.getColumnIndex(GroupData.GROUP_ID));
+          Toast.makeText(getApplicationContext(), "Clicked " + whichItem + " which was " + recipientGroupID, Toast.LENGTH_SHORT).show();
         }
     });
 
     builder.setPositiveButton("Ok",
       new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int id) {
-          Toast.makeText(NewMessageActivity.this, "Success", Toast.LENGTH_SHORT).show();
+          etRecipients.setText(recipientGroup);
+          // Toast.makeText(NewMessageActivity.this, "Success", Toast.LENGTH_SHORT).show();
         }
       });
     builder.setNegativeButton("Cancel",
       new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int id) {
-          Toast.makeText(NewMessageActivity.this, "Fail", Toast.LENGTH_SHORT).show();
+          // Toast.makeText(NewMessageActivity.this, "Fail", Toast.LENGTH_SHORT).show();
         }
       });
     
