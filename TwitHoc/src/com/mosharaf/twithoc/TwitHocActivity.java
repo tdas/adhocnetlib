@@ -1,5 +1,10 @@
 package com.mosharaf.twithoc;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.StreamCorruptedException;
+
 import android.adhocnetlib.NetworkManager;
 import android.app.TabActivity;
 import android.content.Intent;
@@ -29,6 +34,26 @@ public class TwitHocActivity extends TabActivity {
     NetworkManager.getInstance().initialize(this, null);
     NetworkManager.getInstance().start();
 
+    // Add NetworkManager callback function
+    NetworkManager.getInstance().registerCallBackForReceivedData(new NetworkManager.ReceivedDataListener() {
+		@Override
+		public void onReceiveData(byte[] data) {
+			ObjectInputStream ois;
+			Message message = null;
+			
+			try {
+				ois = new ObjectInputStream (new ByteArrayInputStream (data));
+				message = (Message) ois.readObject();
+				ois.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			// Add to local database
+			messageData.createNew(message);
+		}
+	});
+    
     // Get the activity TabHost
     tabHost = getTabHost();
     // Reusable TabSpec for each tab
@@ -64,7 +89,7 @@ public class TwitHocActivity extends TabActivity {
     // Create database objects
     groupData = new GroupData(this);
     messageData = new MessageData(this);
-
+    
     // Add some default database values
     groupData.dropTable();
     groupData.createTable();
