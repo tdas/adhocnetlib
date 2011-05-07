@@ -50,6 +50,7 @@ public class TwitHocActivity extends TabActivity {
 				e.printStackTrace();
 			}
 			
+			Toast.makeText(getApplicationContext(), "Received Stuff " + message.message, Toast.LENGTH_SHORT ).show();
 			// Add to local database
 			messageData.createNew(message);
 		}

@@ -49,8 +49,8 @@ public class GroupData extends SQLiteOpenHelper {
     String sql =
       "CREATE TABLE " + TABLE_NAME + " ("
         + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + GROUP_ID + " TEXT NOT NULL, "
-        + NAME + " TEXT NOT NULL, "
+        + GROUP_ID + " TEXT UNIQUE NOT NULL, "
+        + NAME + " TEXT UNIQUE NOT NULL, "
         + GROUP_KEY + " TEXT NOT NULL, "
         + IS_SELECTED + " BOOLEAN NOT NULL"
         + ");";
@@ -64,7 +64,7 @@ public class GroupData extends SQLiteOpenHelper {
   }
   
   // Insert new entry to the database
-  public void insert(String groupId, String name, String groupKey) {
+  public boolean insert(String groupId, String name, String groupKey) {
     SQLiteDatabase db = getWritableDatabase();
 
     ContentValues values = new ContentValues();
@@ -73,7 +73,7 @@ public class GroupData extends SQLiteOpenHelper {
     values.put(GROUP_KEY, groupKey);
     values.put(IS_SELECTED, false);
 
-    db.insertOrThrow(TABLE_NAME, null, values);
+    return db.insert(TABLE_NAME, null, values) >= 0;
   }
   
   // Insert new entry to the database

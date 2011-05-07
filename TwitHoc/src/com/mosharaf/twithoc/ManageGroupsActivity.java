@@ -15,6 +15,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class ManageGroupsActivity extends ListActivity 
   implements OnClickListener {
@@ -111,13 +113,21 @@ public class ManageGroupsActivity extends ListActivity
   
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+	Dialog dialog = null;
+	  
     switch(item.getItemId()) {
       case R.id.add_group:
-        showDialog(DIALOG_ADD_GROUP);
+		// TODO This isn't the recommended way. Should use showDialog instead.
+		dialog = createAddGroupDialog();
+		dialog.show();
+        // showDialog(DIALOG_ADD_GROUP);
         return true;
 
       case R.id.create_group:
-        showDialog(DIALOG_CREATE_GROUP);
+  		// TODO This isn't the recommended way. Should use showDialog instead.
+  		dialog = createCreateGroupDialog();
+  		dialog.show();
+        // showDialog(DIALOG_CREATE_GROUP);
         return true;
         
       default:
@@ -129,11 +139,8 @@ public class ManageGroupsActivity extends ListActivity
     EditGroupDialog.Builder builder = new EditGroupDialog.Builder(this);
     builder
       .setTitle(R.string.add_group_label)
-      .setPositiveButton(R.string.add_group_label, new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int id) {
-        }
-      });
+      .setWandButton(null)
+      .setPositiveButton(R.string.add_group_label, onClickListenerForAddCreate);
     
     return builder.create();
   }
@@ -142,15 +149,31 @@ public class ManageGroupsActivity extends ListActivity
     EditGroupDialog.Builder builder = new EditGroupDialog.Builder(this);
     builder
       .setTitle(R.string.create_group_label)
-      .setPositiveButton(R.string.create_group_label, new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int id) {
-        }
-      });
+      .setPositiveButton(R.string.create_group_label, onClickListenerForAddCreate);
     
     return builder.create();
   }
 
+  private DialogInterface.OnClickListener onClickListenerForAddCreate = 
+	  new DialogInterface.OnClickListener() {
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+			// Get the data from the dialog box. This might not be the best way	
+			AlertDialog alert = ((AlertDialog) dialog);
+			
+	        String gA = ((TextView) alert.findViewById(R.id.et_group_alias)).getText().toString();
+	        String gID = ((TextView) alert.findViewById(R.id.et_group_id)).getText().toString();
+	        String gK = ((TextView) alert.findViewById(R.id.et_group_key)).getText().toString();
+			
+		  	if (groupData.insert(gID, gA, gK)) {
+				Toast.makeText(getApplicationContext(), getString(R.string.add_group_succeeded), Toast.LENGTH_SHORT).show();
+				getOrRefreshData();
+			} else {
+				Toast.makeText(getApplicationContext(), getString(R.string.add_group_failed), Toast.LENGTH_SHORT).show();
+			}
+		}
+	  };
+  
   private Dialog createEditGroupDialog(final int _ID, final String gName, final String gID, final String gKey) {
     EditGroupDialog.Builder builder = new EditGroupDialog.Builder(this);
     builder
@@ -158,6 +181,7 @@ public class ManageGroupsActivity extends ListActivity
       .setGroupAlias(gName)
       .setGroupID(gID)
       .setGroupKey(gKey)
+      .setWandButton(null)
       .setPositiveButton(R.string.update_group_label, new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int id) {
@@ -173,7 +197,6 @@ public class ManageGroupsActivity extends ListActivity
         public void onClick(DialogInterface dialog, int id) {
           groupData.deleteGroup(_ID);
           getOrRefreshData();
-          // listCursor.requery();
         }
       });
     

@@ -117,7 +117,10 @@ public class NewMessageActivity extends Activity
       TwitHocActivity thA = (TwitHocActivity) this.getParent();
       thA.switchTab(getString(R.string.timeline_label));
     } else if (v == etRecipients) {
-      showDialog(DIALOG_SELECT_GROUPS);
+      // TODO: This isn't the recommended way. Should use showDialog instead.
+      Dialog dialog = createGroupSelectionDialog();
+      dialog.show();
+      // showDialog(DIALOG_SELECT_GROUPS);
     }
   }
   

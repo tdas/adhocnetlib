@@ -59,7 +59,9 @@ public final class R {
         public static final int manage_groups=0x7f060000;
     }
     public static final class string {
+        public static final int add_group_failed=0x7f05000f;
         public static final int add_group_label=0x7f050009;
+        public static final int add_group_succeeded=0x7f050010;
         public static final int app_name=0x7f050000;
         public static final int create_group_label=0x7f05000b;
         public static final int delete_group_label=0x7f05000d;

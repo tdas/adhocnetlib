@@ -15,4 +15,6 @@
     <string name="update_group_label">Update</string>
     <string name="delete_group_label">Delete</string>
     <string name="timeline_no_messages">No messages to display!</string>
+    <string name="add_group_failed">Failed to add group.</string>
+    <string name="add_group_succeeded">Group Added!</string>
 </resources>
