@@ -17,4 +17,6 @@
     <string name="timeline_no_messages">No messages to display!</string>
     <string name="add_group_failed">Failed to add group.</string>
     <string name="add_group_succeeded">Group Added!</string>
+    <string name="exit_twithoc_label">Exit</string>
+    <string name="toggle_mode_label">Toggle Mode</string>
 </resources>
