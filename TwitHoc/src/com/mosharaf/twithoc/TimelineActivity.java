@@ -49,7 +49,6 @@ public class TimelineActivity extends ListActivity
     groupData = new GroupData(this);
     messageData = new MessageData(this);
 
-    // TODO GroupName has to be fixed
     displayFields = new String[] { MessageData.GROUP_ID, MessageData.MESSAGE, MessageData.POSTED_AT };
     displayViews = new int[] { R.id.tv_group_name, R.id.tv_message, R.id.tv_time_message_posted };
     
@@ -74,7 +73,6 @@ public class TimelineActivity extends ListActivity
     a.runOnUiThread(new Runnable() {
 	  public void run() {
         tvConnectionMode.setText(mode);
-        Toast.makeText(getApplicationContext(), "AAAAAA", Toast.LENGTH_SHORT).show();
       }
     });		
   }
@@ -91,8 +89,7 @@ public class TimelineActivity extends ListActivity
       cur.requery();
     }
   }
-  
-  // TODO FIX FIX FIX
+
   private Cursor getMessagesToDisplay() {
     String[] projectionIn = { GroupData.NAME, MessageData.MESSAGE, MessageData.POSTED_AT };
     String sortOrder = MessageData.POSTED_AT;
