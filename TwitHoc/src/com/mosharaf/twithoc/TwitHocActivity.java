@@ -26,7 +26,7 @@ public class TwitHocActivity extends TabActivity {
 
     // Initialize NetworkManager
     NetworkManager.getInstance().initialize(this, null);
-    
+    // NetworkManager.getInstance().start();
 
     // Get the activity TabHost
     tabHost = getTabHost();
