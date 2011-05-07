@@ -133,19 +133,6 @@ public class NewMessageActivity extends Activity
     return false;    
   }
   
-  private Dialog createTestDialog() {
-    final CharSequence[] items = {"Red", "Green", "Blue"};
-
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    builder.setTitle("Pick a color");
-    builder.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int item) {
-            Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
-        }
-    });
-    return builder.create();
-  }
-  
   private Dialog createGroupSelectionDialog() {
     final Cursor cursor = groupData.all(this);
 
@@ -156,7 +143,7 @@ public class NewMessageActivity extends Activity
           cursor.moveToPosition(whichItem);
           recipientGroup = cursor.getString(cursor.getColumnIndex(GroupData.NAME));
           recipientGroupID = cursor.getString(cursor.getColumnIndex(GroupData.GROUP_ID));
-          Toast.makeText(getApplicationContext(), "Clicked " + whichItem + " which was " + recipientGroupID, Toast.LENGTH_SHORT).show();
+          // Toast.makeText(getApplicationContext(), "Clicked " + whichItem + " which was " + recipientGroupID, Toast.LENGTH_SHORT).show();
         }
     });
 
