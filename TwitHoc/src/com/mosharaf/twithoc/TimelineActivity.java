@@ -154,7 +154,7 @@ public class TimelineActivity extends ListActivity
     	String toRet = "";
     	
         long curTime = System.currentTimeMillis();
-        long postedTimeAgo = curTime - postedAt;
+        long postedTimeAgo = (curTime - postedAt) / 1000;
     	
         // If more than a day, return date
         if (postedTimeAgo >= 86400) {
