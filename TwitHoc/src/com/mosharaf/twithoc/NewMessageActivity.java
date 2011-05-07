@@ -91,7 +91,12 @@ public class NewMessageActivity extends Activity
       if (etRecipients.getText().length() != 0) {
         if (etMessage.getText().length() != 0) {
           // If there is a message and a recipient, try to post
-          if (postMessage(etMessage.getText().toString(), recipientGroupID)) {        	
+          Message message = new Message(etMessage.getText().toString(), recipientGroupID);
+          
+          if (postMessage(message)) { 
+        	// Add to local database
+        	messageData.createNew(message);
+        	  
             // Notify success
             Toast.makeText(this, getString(R.string.post_message_succeeded), Toast.LENGTH_SHORT).show();
             
@@ -116,9 +121,8 @@ public class NewMessageActivity extends Activity
     }
   }
   
-  private boolean postMessage(String messageToSend, String groupID) { 
+  private boolean postMessage(Message message) { 
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    Message message = new Message(messageToSend, groupID);
     ObjectOutputStream oos;
 	
     try {
@@ -128,6 +132,11 @@ public class NewMessageActivity extends Activity
 		e1.printStackTrace();
 	}
     return NetworkManager.getInstance().sendData(bos.toByteArray(), Message.expireAfter); 
+  }
+  
+  private boolean postMessage(String messageToSend, String groupID) { 
+    Message message = new Message(messageToSend, groupID);
+    return postMessage(message);
   }
   
   private Dialog createGroupSelectionDialog() {

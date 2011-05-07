@@ -134,8 +134,8 @@ public class TimelineActivity extends ListActivity
       
       String postedAtStr = this.cursor.getString(this.cursor.getColumnIndex(MessageData.POSTED_AT));
       long postedAt = Long.parseLong(postedAtStr);
-      long curTime = System.currentTimeMillis();
-      String postedTimeAgo = getTimeAgo((curTime - postedAt) / 1000);
+      // long curTime = System.currentTimeMillis();
+      // String postedTimeAgo = getTimeAgo((curTime - postedAt) / 1000);
 
       TextView tvGroupName = (TextView) v.findViewById(R.id.tv_group_name);
       tvGroupName.setText(groupName);
@@ -144,9 +144,28 @@ public class TimelineActivity extends ListActivity
       tvMessage.setText(message);
       
       TextView tvMessagePosted = (TextView) v.findViewById(R.id.tv_time_message_posted);
-      tvMessagePosted.setText(postedTimeAgo);
+      tvMessagePosted.setText(formatTimeToShow(postedAt));
       
       return(v);
+    }
+    
+    // Expects time in milliseconds
+    private String formatTimeToShow(long postedAt) {
+    	String toRet = "";
+    	
+        long curTime = System.currentTimeMillis();
+        long postedTimeAgo = curTime - postedAt;
+    	
+        // If more than a day, return date
+        if (postedTimeAgo >= 86400) {
+        	toRet = new java.text.SimpleDateFormat("MMM d").format(new java.util.Date (postedAt));
+        } 
+        // Otherwise, return time
+        else {
+        	toRet = new java.text.SimpleDateFormat("h:mm a").format(new java.util.Date (postedAt));
+        }
+    	
+    	return toRet;
     }
     
     // Expects time difference in seconds
