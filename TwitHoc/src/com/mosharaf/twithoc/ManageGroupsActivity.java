@@ -177,21 +177,21 @@ public class ManageGroupsActivity extends ListActivity
   private Dialog createEditGroupDialog(final int _ID, final String gName, final String gID, final String gKey) {
     EditGroupDialog.Builder builder = new EditGroupDialog.Builder(this);
     builder
-      .setTitle(R.string.edit_group_label)
+      .setTitle(R.string.delete_group_label)
       .setGroupAlias(gName)
       .setGroupID(gID)
       .setGroupKey(gKey)
       .setWandButton(null)
-      .setPositiveButton(R.string.update_group_label, new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int id) {
-          boolean x = groupData.updateGroup(_ID, gName, gID, gKey);
+      // .setPositiveButton(R.string.update_group_label, new DialogInterface.OnClickListener() {
+        // @Override
+        // public void onClick(DialogInterface dialog, int id) {
+          // boolean x = groupData.updateGroup(_ID, gName, gID, gKey);
           // TODO Update isn't working :(
-          getOrRefreshData();
-//          listCursor.requery();
-//          listAdapter.notifyDataSetChanged();
-        }
-      })
+          // getOrRefreshData();
+          // listCursor.requery();
+          // listAdapter.notifyDataSetChanged();
+        // }
+      // })
       .setNeutralButton(R.string.delete_group_label, new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int id) {
