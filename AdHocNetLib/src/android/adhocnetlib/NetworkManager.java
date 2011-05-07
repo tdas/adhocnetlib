@@ -3,13 +3,18 @@ package android.adhocnetlib;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -122,6 +127,7 @@ public final class NetworkManager {
 			socket = s;
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void run() {
 			Log.d(TAG, "ReceivingThread started.");
@@ -132,40 +138,36 @@ public final class NetworkManager {
 				// Send server.id and the buffer items
 				// Receive buffer items and add it to the buffer
 				
-				byte[] synByteArray = null;
-				String synStr = "";
+				UUID clientid = null;
 				try {
-					synByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
-					synStr = new String(synByteArray);
-					Toast("Received " + synStr);
-					Log.d(TAG, "Received " + synStr);
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					clientid = (UUID) ois.readObject();
+					Toast("Received client id: " + clientid.toString());
+					Logd("Received client id: " + clientid.toString());
 				} catch (Exception e) {
-					Loge("Failed in deserializing syn: " + e);
-					Toast("Failed in deserializing syn: " + e);
+					Loge("Failed in receiving clientid: " + e);
 					throw e; 
 				}
 				
 				try {
-					BufferItem.serialize(new BufferItem("SYNACK".getBytes(), 20000,
-							NetworkManager.getInstance().uniqueID), 
-							socket.getOutputStream());
-					Log.d(TAG, "Sent SYNACK");
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject(NetworkManager.getInstance().uniqueID);
+					Log.d(TAG, "Sent server UUID");
 				} catch (Exception e) {
-					Loge("Failed in serializing synack: " + e);
-					Toast("Failed in serializing synack: " + e);
+					Loge("Failed in serializing server UUID: " + e);
 					throw e;
 				}
 				
-				String ackStr = "";
-				byte[] ackByteArray = null;
+				ArrayList<BufferItem> receivedBufferItems = null;
 				try {
-					ackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
-					ackStr = new String(ackByteArray);
-					Toast("Received " + ackStr);
-					Log.d(TAG, "Received " + ackStr);
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					receivedBufferItems = (ArrayList<BufferItem>) ois.readObject();
+					bufferManager.addItems(receivedBufferItems);
+					Toast("Received buffer items");
+					Log.d(TAG, "Received buffer items");
 				} catch (Exception e) {
-					Loge("Failed in deserializing ack: " + e);
-					Toast("Failed in deserializing ack: " + e);
+					Loge("Failed in deserializing buffer items: " + e);
+					Toast("Failed in deserializing buffer items: " + e);
 					throw e;
 				}
 				
@@ -186,6 +188,7 @@ public final class NetworkManager {
 
 		private static final String TAG = "NetworkManager.SendingThread";
 		private Socket socket = null;
+		
 		@Override
 		public void run() {
 			Log.d(TAG, "SendingThread started.");
@@ -210,36 +213,35 @@ public final class NetworkManager {
 							Loge("Exception while creating socket in sending thread: " + e);
 							throw e;
 						}
-					
+						
 						try {
-							BufferItem.serialize(new BufferItem("SYN".getBytes(), 20000,
-									NetworkManager.getInstance().uniqueID), 
-									socket.getOutputStream());
-							Logd("Sent SYN");							
+							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+							oos.writeObject(NetworkManager.getInstance().uniqueID);
+							Logd("Sent client id");							
 						} catch (Exception e) {
-							Loge("Exception in serializing syn: " + e);
+							Loge("Exception in sending client id: " + e);
 							throw e;
 						}
 					
-						byte[] synackByteArray = null;
+						UUID serverid = null;
 						try {
-							synackByteArray = BufferItem.deserialize(socket.getInputStream()).data.bytes;
-							String synackStr = new String(synackByteArray);//input.readLine();
-							Toast("Received " + synackStr);
-							Logd("Received " + synackStr);
+							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+							serverid = (UUID) ois.readObject();
+							Toast("Received " + serverid);
+							Logd("Received " + serverid);
 						} catch (Exception e) {
-							Loge("Exception in deserializing synack: " + e);
+							Loge("Exception in deserializing serverid: " + e);
 							throw e;
-						}
-					
+						}					
 					
 						try {
-							BufferItem.serialize(new BufferItem("ACK".getBytes(), 20000,
-									NetworkManager.getInstance().uniqueID), 
-									socket.getOutputStream());
-							Logd("Sent ACK");
+							ArrayList<BufferItem> toSend = bufferManager.getAllItemsForNodeID(serverid);
+							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+							oos.writeObject(toSend);
+							Logd("Sent buffer items");
+							
 						} catch (Exception e) {
-							Loge("Exception in serializing ack: " + e);
+							Loge("Exception in serializing buffer items: " + e);
 							throw e;
 						} 
 						break;
@@ -349,7 +351,7 @@ public final class NetworkManager {
 	
 	public boolean sendData(byte[] data, long ttl) {
 		if (!checkIfStarted()) return false;
-		return bufferManager.createNewItem(data, 120 * 1000, uniqueID);
+		return bufferManager.createNewItem(data, ttl, uniqueID);
 	}
 
 	public boolean registerCallBackForReceivedData(ReceivedDataListener listener) {

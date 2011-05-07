@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.UUID;
 
 public class BufferManager {
@@ -70,7 +71,7 @@ public class BufferManager {
 		return addItem_(item);
 	}
 	
-	public synchronized boolean addItems (Collection<BufferItem> items) {
+	public synchronized boolean addItems (List<BufferItem> items) {
 		for (BufferItem item: items) {
 			addItem_(item);
 		}		
@@ -97,7 +98,7 @@ public class BufferManager {
 		return true;
 	}
 	
-	public synchronized Collection<BufferItem> getAllItemsForNodeID  (UUID nodeID) {
+	public synchronized ArrayList<BufferItem> getAllItemsForNodeID  (UUID nodeID) {
 		ArrayList<BufferItem> filteredItems = new ArrayList<BufferItem>();
 		for (BufferItem bufferedItem : bufferedItems.values()) {
 			if (nodeID == null || !bufferedItem.nodeIDs.contains(nodeID)) {
