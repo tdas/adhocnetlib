@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText; 
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class NewMessageActivity extends Activity 
@@ -94,6 +95,10 @@ public class NewMessageActivity extends Activity
           Message message = new Message(etMessage.getText().toString(), recipientGroupID);
           
           if (postMessage(message)) { 
+        	// Clear textboxes
+        	setTextOfElement(etRecipients, "");
+        	setTextOfElement(etMessage, "");
+        	  
         	// Add to local database
         	messageData.createNew(message);
         	  
@@ -113,12 +118,23 @@ public class NewMessageActivity extends Activity
         Toast.makeText(this, getString(R.string.no_recipients_selected), Toast.LENGTH_SHORT).show();
       }
     } else if (v == btCancel) {
+      // Clear textboxes
+      setTextOfElement(etRecipients, "");
+      setTextOfElement(etMessage, "");
+    	
       // Go back to the timeline tab
       TwitHocActivity thA = (TwitHocActivity) this.getParent();
       thA.switchTab(getString(R.string.timeline_label));
     } else if (v == etRecipients) {
-      showDialog(DIALOG_SELECT_GROUPS);
+      // TODO: This isn't the recommended way. Should use showDialog instead.
+      Dialog dialog = createGroupSelectionDialog();
+      dialog.show();
+      // showDialog(DIALOG_SELECT_GROUPS);
     }
+  }
+  
+  private void setTextOfElement(TextView tv, String text) {
+	  tv.setText(text);
   }
   
   private boolean postMessage(Message message) { 

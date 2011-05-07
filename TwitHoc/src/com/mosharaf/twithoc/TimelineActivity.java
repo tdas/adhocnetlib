@@ -1,13 +1,13 @@
 package com.mosharaf.twithoc;
 
+import java.util.HashMap;
+
 import android.adhocnetlib.NetworkManager;
 import android.adhocnetlib.NetworkManager.NetworkStates;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -27,9 +27,12 @@ public class TimelineActivity extends ListActivity
   
   protected TextView tvConnectionMode;
   protected ImageButton btRefresh;
+  
+  private HashMap<String, String> uuidToGroupName = new HashMap<String, String>();
     
   // Cursor containing the data
-  Cursor cur;
+  Cursor groupCursor;
+  Cursor messageCursor;
   
   private String[] displayFields;
   private int[] displayViews;
@@ -52,8 +55,10 @@ public class TimelineActivity extends ListActivity
     displayFields = new String[] { MessageData.GROUP_ID, MessageData.MESSAGE, MessageData.POSTED_AT };
     displayViews = new int[] { R.id.tv_group_name, R.id.tv_message, R.id.tv_time_message_posted };
     
-    cur = messageData.all(this);
-    setListAdapter(new TimelineCursorAdapter(this, R.layout.timeline_row, cur, displayFields, displayViews));
+    messageCursor = messageData.all(this);
+    setListAdapter(new TimelineCursorAdapter(this, R.layout.timeline_row, messageCursor, displayFields, displayViews));
+    
+    groupCursor = groupData.all(this);
     
     // Add NetworkManager status listener
     NetworkManager.getInstance().registerCallBackForNetworkStateChange(new NetworkManager.NetworkStateChangeListener() {			
@@ -85,13 +90,13 @@ public class TimelineActivity extends ListActivity
   @Override
   public void onResume() {
     super.onResume();
-    cur.requery();
+    messageCursor.requery();
   }
   
   @Override
   public void onClick(View v) {
     if (v == btRefresh) {
-      cur.requery();
+      messageCursor.requery();
     }
   }
 
@@ -134,7 +139,11 @@ public class TimelineActivity extends ListActivity
       this.cursor.moveToPosition(pos);
       
       // TODO groupName has to be fixed 
-      String groupName = this.cursor.getString(this.cursor.getColumnIndex(MessageData.GROUP_ID));
+      String groupID = this.cursor.getString(this.cursor.getColumnIndex(MessageData.GROUP_ID));
+      if (uuidToGroupName.containsKey(groupID) == false) {
+    	  refreshUUIDToGroupName();
+      }
+      String groupName = uuidToGroupName.get(groupID);
       String message = this.cursor.getString(this.cursor.getColumnIndex(MessageData.MESSAGE));
       
       String postedAtStr = this.cursor.getString(this.cursor.getColumnIndex(MessageData.POSTED_AT));
@@ -154,12 +163,25 @@ public class TimelineActivity extends ListActivity
       return(v);
     }
     
+    private void refreshUUIDToGroupName() {
+    	groupCursor.requery();
+    	groupCursor.moveToFirst();
+    	while (groupCursor.isAfterLast() == false) {
+    		String gID = groupCursor.getString(groupCursor.getColumnIndex(GroupData.GROUP_ID));
+    		String gName = groupCursor.getString(groupCursor.getColumnIndex(GroupData.NAME));
+    		if (uuidToGroupName.containsKey(gID) ==  false) {
+    			uuidToGroupName.put(gID, gName);
+    		}
+    		groupCursor.moveToNext();
+    	}
+    }
+    
     // Expects time in milliseconds
     private String formatTimeToShow(long postedAt) {
     	String toRet = "";
     	
         long curTime = System.currentTimeMillis();
-        long postedTimeAgo = curTime - postedAt;
+        long postedTimeAgo = (curTime - postedAt) / 1000;
     	
         // If more than a day, return date
         if (postedTimeAgo >= 86400) {

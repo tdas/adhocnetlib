@@ -1,10 +1,13 @@
 package com.mosharaf.twithoc;
  
+import java.util.UUID;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 // Based on http://blog.androgames.net/10/custom-android-dialog/
@@ -31,12 +34,32 @@ public class EditGroupDialog extends AlertDialog {
     private String negativeButtonText = "Cancel";
     private String neutralButtonText = null;
     
+    private View layout = null;
+    
     private DialogInterface.OnClickListener positiveButtonClickListener,
                                             negativeButtonClickListener,
                                             neutralButtonClickListener;
     
+    private View.OnClickListener wandButtonClickListener = new View.OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			((TextView) layout.findViewById(R.id.et_group_id)).setText(UUID.randomUUID().toString());
+		}
+	};
+    
     public Builder(Context context) {
       this.context = context;          
+    }
+    
+    public Builder setGroup(Group g) {
+    	this.groupAlias = g.groupAlias;
+    	this.groupID = g.groupID;
+    	this.groupKey = g.groupKey;
+    	return this;
+    }
+    
+    public Group getGroup() {
+    	return new Group(this.groupAlias, this.groupID, this.groupKey);
     }
     
     public Builder setGroupAlias(String gA) {
@@ -127,6 +150,11 @@ public class EditGroupDialog extends AlertDialog {
         return this;
     }
     
+    public Builder setWandButton(View.OnClickListener listener) {
+    	this.wandButtonClickListener = listener;
+    	return this;
+    }
+    
     public AlertDialog create() {
         // Setup the AlertDialog builder
         AlertDialog.Builder alertBuilder = new AlertDialog.Builder(context);
@@ -140,14 +168,20 @@ public class EditGroupDialog extends AlertDialog {
   
         // Set custom view
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View layout = inflater.inflate(R.layout.edit_group_dialog, null);
+        layout = inflater.inflate(R.layout.edit_group_dialog, null);
         dialog.setView(layout);
   
-        // Setup text boxes
-        
+        // Setup text boxes        
         ((TextView) layout.findViewById(R.id.et_group_alias)).setText(groupAlias);
         ((TextView) layout.findViewById(R.id.et_group_id)).setText(groupID);
         ((TextView) layout.findViewById(R.id.et_group_key)).setText(groupKey);
+        
+        // Set the listener for the wandButton
+        if (wandButtonClickListener == null) {
+        	((ImageButton) layout.findViewById(R.id.bt_generate_group_id)).setVisibility(View.GONE);
+        } else {
+        	((ImageButton) layout.findViewById(R.id.bt_generate_group_id)).setOnClickListener(wandButtonClickListener);
+        }
         
         return dialog;
     }
