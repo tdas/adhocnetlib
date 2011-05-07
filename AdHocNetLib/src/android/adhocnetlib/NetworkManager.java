@@ -52,7 +52,7 @@ public final class NetworkManager {
 	}
 	
 	public static interface NetworkStateChangeListener {
-		public void onNetworkStateChange(NetworkStates state);
+		public void onNetworkStateChange(NetworkStates state, String details);
 	}
 	
 	private class StateChangeTimerTask extends TimerTask {
@@ -130,8 +130,9 @@ public final class NetworkManager {
 		@SuppressWarnings("unchecked")
 		@Override
 		public void run() {
-			Log.d(TAG, "ReceivingThread started.");
+			Logd("ReceivingThread started.");
 			String message = null;
+			
 			try {
 				// Receive client.id
 				// Get buffer items that have not been already sent to client.id
@@ -142,7 +143,7 @@ public final class NetworkManager {
 				try {
 					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 					clientid = (UUID) ois.readObject();
-					Toast("Received client id: " + clientid.toString());
+					//Toast("Received client id: " + clientid.toString());
 					Logd("Received client id: " + clientid.toString());
 				} catch (Exception e) {
 					Loge("Failed in receiving clientid: " + e);
@@ -152,42 +153,68 @@ public final class NetworkManager {
 				try {
 					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 					oos.writeObject(NetworkManager.getInstance().uniqueID);
-					Log.d(TAG, "Sent server UUID");
+					Logd("Sent server id");
 				} catch (Exception e) {
 					Loge("Failed in serializing server UUID: " + e);
 					throw e;
 				}
 				
 				ArrayList<BufferItem> newItems  = null;
-				ArrayList<BufferItem> receivedBufferItems = null;
 				try {
-					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-					receivedBufferItems = (ArrayList<BufferItem>) ois.readObject();
-					newItems = bufferManager.addItemsAndReturnNewItems(receivedBufferItems);
-					for (BufferItem item: newItems) {
-						if (receivedDataListener != null) {
-							receivedDataListener.onReceiveData(item.data.bytes);
-						}
-					}
 					
-					Toast("Received buffer items");
-					Log.d(TAG, "Received buffer items");
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					ArrayList<BufferItem> receivedBufferItems = (ArrayList<BufferItem>) ois.readObject();
+					newItems = bufferManager.addItemsAndReturnNewItems(receivedBufferItems);
+					int newCount = 0;
+					if (newItems != null) {
+						newCount = newItems.size();
+					}
+					message = "Received "+receivedBufferItems.size()+" buffer items, "+newCount+" of them new.";
+					Toast(message);
+					Logd(message);
 				} catch (Exception e) {
 					Loge("Failed in deserializing buffer items: " + e);
 					Toast("Failed in deserializing buffer items: " + e);
 					throw e;
 				}
 				
-				Toast("Data successfully received.");
+				
+				try {
+					ArrayList<BufferItem> toSend = bufferManager.getAllItemsForNodeID(clientid);
+					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject(toSend);
+					message = "Sent "+toSend.size()+" buffer items."; 
+					Toast (message);
+					Logd(message);					
+				} catch (Exception e) {
+					Loge("Exception in serializing buffer items: " + e);
+					throw e;
+				} 
+				
+				try {
+					if (newItems != null) {
+						for (BufferItem item: newItems) {
+							if (receivedDataListener != null) {
+								receivedDataListener.onReceiveData(item.data.bytes);
+							}
+						}
+					}
+				} catch (Exception e) {
+					message = "Error notifying application: " + e.toString();
+					Loge(message);
+				}
+				//Toast("Data successfully received.");
 				
 			} catch (Exception e) {
 				message= "ReceivingThread exception: "+ e.toString();
-				Log.d(TAG, message);
+				Loge(message);
 			} finally {
 				try {
 					socket.close();
 				} catch (IOException e) {}
 			}
+			
+			
 		}
 	}
 	
@@ -234,7 +261,7 @@ public final class NetworkManager {
 						try {
 							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 							serverid = (UUID) ois.readObject();
-							Toast("Received " + serverid);
+							//Toast("Received " + serverid);
 							Logd("Received " + serverid);
 						} catch (Exception e) {
 							Loge("Exception in deserializing serverid: " + e);
@@ -245,13 +272,49 @@ public final class NetworkManager {
 							ArrayList<BufferItem> toSend = bufferManager.getAllItemsForNodeID(serverid);
 							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 							oos.writeObject(toSend);
-							Logd("Sent buffer items");
+							message = "Sent "+toSend.size()+" buffer items."; 
+							Toast (message);
+							Logd(message);
 							
 						} catch (Exception e) {
 							Loge("Exception in serializing buffer items: " + e);
 							throw e;
 						} 
+						
+						ArrayList<BufferItem> newItems  = null;
+						try {
+							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+							ArrayList<BufferItem> receivedBufferItems = (ArrayList<BufferItem>) ois.readObject();
+							newItems = bufferManager.addItemsAndReturnNewItems(receivedBufferItems);
+							int newCount = 0;
+							if (newItems != null) {
+								newCount = newItems.size();
+							}
+							message = "Received "+receivedBufferItems.size()+" buffer items, "+newCount+" of them new.";
+							Toast(message);
+							Logd(message);
+						} catch (Exception e) {
+							Loge("Failed in deserializing buffer items: " + e);
+							Toast("Failed in deserializing buffer items: " + e);
+							throw e;
+						}
+						
+						try {
+							if (newItems != null) {
+								for (BufferItem item: newItems) {
+									if (receivedDataListener != null) {
+										receivedDataListener.onReceiveData(item.data.bytes);
+									}
+								}
+							}
+						} catch (Exception e) {
+							message = "Error notifying application: " + e.toString();
+							Loge(message);
+							throw e;
+						}
+						
 						break;
+						
 					} catch (Exception e) { 
 						Loge("Exception in SendingThread at " + attempts + " attempt: " + e);
 						attempts--;
@@ -262,7 +325,7 @@ public final class NetworkManager {
 				}
 				
 				managerState.successfullySent = true;
-				Toast("Data successfully sent.");
+				//Toast("Data successfully sent.");
 			} catch (Exception e) {
 				message= "SendingThread exception: "+ e.toString();
 				Loge(message);
@@ -336,16 +399,18 @@ public final class NetworkManager {
 		return true;
 	}
 	
+	public void setLastActivityTime() {
+		managerState.lastActivityTime = new Timestamp(new Date().getTime()); 
+	}
+	
 	public synchronized boolean start() {
 		if (!checkIfStarted()) {
 			managerState.started = true;
 			if (switchMode == NetworkSwitchModes.AUTOMATIC) {
 				stateChangeTimer.schedule(stateChangeTimerTask, stateChangeTimerDelay, stateChangeTimerDelay);		
 			}
-			if (networkStateChangeListener != null) {
-				networkStateChangeListener.onNetworkStateChange(state);
-			}
-			Toast("Started");
+			callNetworkStateChangeListener("Initializing...");
+			//Toast("Started");
 			Logd("Started");
 		}
 		
@@ -444,9 +509,16 @@ public final class NetworkManager {
 			default: Loge("Unexpected new state: " + newState);
 			}
 			state = newState;
-			if (networkStateChangeListener != null) {
-				networkStateChangeListener.onNetworkStateChange(state);
+			callNetworkStateChangeListener("");
+		}
+	}
+	
+	public void callNetworkStateChangeListener (String detail) {
+		if (networkStateChangeListener != null) {
+			if (detail == null) {
+				detail = "";
 			}
+			networkStateChangeListener.onNetworkStateChange(state, detail);
 		}
 	}
 	

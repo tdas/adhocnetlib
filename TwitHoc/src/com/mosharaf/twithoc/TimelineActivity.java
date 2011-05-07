@@ -58,11 +58,16 @@ public class TimelineActivity extends ListActivity
     // Add NetworkManager status listener
     NetworkManager.getInstance().registerCallBackForNetworkStateChange(new NetworkManager.NetworkStateChangeListener() {			
 		@Override
-		public void onNetworkStateChange(NetworkStates state) {
-			switch (state) {
-			case ADHOC_CLIENT: setModeOnUIThread("Client"); break;
+		public void onNetworkStateChange(NetworkStates state, String detail) {
+			if (detail != null && detail.length() > 0) {
+				detail = " - " + detail; 
+			} else {
+				detail = "";
+			}
+			switch (state) {			
+			case ADHOC_CLIENT: setModeOnUIThread("Client"+ detail); break;
 			case ADHOC_SERVER: setModeOnUIThread("Server"); break;
-			case DISABLED: setModeOnUIThread("Disabled"); break;
+			case DISABLED: setModeOnUIThread("Off"); break;
 			}				
 		}
 	});

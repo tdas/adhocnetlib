@@ -31,7 +31,8 @@ public class NetworkUtilities {
 	private class ScanReceiver extends BroadcastReceiver implements Runnable {
 		private static final String TAG = "NetworkUtilities.ScanningThread.ScanReceiver";
 		private String requiredSSID = "AndroidTether";
-		String message = null;
+		private String message = null;
+		private int count = 0; 
 		
 		@Override
 		public void onReceive(Context c, Intent intent) {
@@ -47,74 +48,83 @@ public class NetworkUtilities {
 			boolean done = false;
 			boolean found = false;
 			boolean configured = false;
+			
+			
 			try {
 				  
 				synchronized (NetworkUtilities.instance) {	
 					
-				context.unregisterReceiver(this);
-				scanResults = wifiManager.getScanResults();
-				if (!scanStarted) {
-					  //context.unregisterReceiver(this);
-					return;
-				}
-				if (scanResults!= null) {
-					// select AndroidTether and connect
-				    message =  "Wifi scan complete, "+scanResults.size()+" results found.";
-					//Toast(message);
-				    found = false;
-					for (ScanResult result: scanResults) {
-						if (result.SSID.contains(requiredSSID)) {
-							found = true;
-							message = "Found Wifi = [ " + result.toString()+" ].";
-							Logd(message);
-							
-							//find the required configured network
-							int netID = -1;
-							List<WifiConfiguration> wifiConfigs = wifiManager.getConfiguredNetworks();
-					    	for (WifiConfiguration config : wifiConfigs) {
-					    		if (config.SSID.contains(result.SSID)) {
-					    			netID = config.networkId;
-					    			break;
-					    		}
-					    	}
-					    	
-					    	// connect to the configured network
-					    	if (netID >= 0) {
-					    		configured = true;
-					    		if (connect(netID)) {
-					    			done = true;
-									message = "Successfully connected.";
-									Logd(message);
-									Toast(message);
-									if (adhocClientModeStartListener != null) {
-										adhocClientModeStartListener.onAdhocClientModeReady();
-									}
-									return;
-					    		}
-					    	} 
-					    	break;					    	
-						}
+					context.unregisterReceiver(this);
+					count++;
+					message = "Scanning";
+					for (int w = 0; w < count % 3 + 1; w++) {
+						message += ".";
 					}
-				
-					if (!found) {
-						message = requiredSSID +" not found.";
-						Logd(message);
-						Toast(message);
-					} else if (found && !configured) {
-						message = requiredSSID +" found, but not configured.";
+					NetworkManager.getInstance().callNetworkStateChangeListener(message);
+					
+					scanResults = wifiManager.getScanResults();
+					if (!scanStarted) {
+						  //context.unregisterReceiver(this);
+						return;
+					}
+					if (scanResults!= null) {
+						// select AndroidTether and connect
+					    message =  "Wifi scan complete, "+scanResults.size()+" results found.";
+						//Toast(message);
+					    found = false;
+						for (ScanResult result: scanResults) {
+							if (result.SSID.contains(requiredSSID)) {
+								found = true;
+								message = "Found Wifi = [ " + result.toString()+" ].";
+								Logd(message);
+								
+								//find the required configured network
+								int netID = -1;
+								List<WifiConfiguration> wifiConfigs = wifiManager.getConfiguredNetworks();
+						    	for (WifiConfiguration config : wifiConfigs) {
+						    		if (config.SSID.contains(result.SSID)) {
+						    			netID = config.networkId;
+						    			break;
+						    		}
+						    	}
+						    	
+						    	// connect to the configured network
+						    	if (netID >= 0) {
+						    		configured = true;
+						    		if (connect(netID)) {
+						    			done = true;
+										message = "Successfully connected.";
+										Logd(message);
+										Toast(message);
+										if (adhocClientModeStartListener != null) {
+											adhocClientModeStartListener.onAdhocClientModeReady();
+										}
+										return;
+						    		}
+						    	} 
+						    	break;					    	
+							}
+						}
+					
+						if (!found) {
+							message = requiredSSID +" not found.";
+							Logd(message);
+							Toast(message);
+						} else if (found && !configured) {
+							message = requiredSSID +" found, but not configured.";
+							Logd(message);
+							Toast(message);
+						}
+						
+					} else {
+						message = "No wifi networks found.";
 						Logd(message);
 						Toast(message);
 					}
 					
-				} else {
-					message = "No wifi networks found.";
-					Logd(message);
-					Toast(message);
-				}
-				
-				  
-				context.registerReceiver(this, scanIntentFilter);
-				new Thread( new Runnable() {
+					  
+					context.registerReceiver(this, scanIntentFilter);
+					new Thread( new Runnable() {
 					public void run() {
 						try {
 							Thread.sleep(1000 * 5);
@@ -137,6 +147,8 @@ public class NetworkUtilities {
 	
 		private boolean connect(int netID) throws InterruptedException {
 			String ssid = "";
+			NetworkManager.getInstance().setLastActivityTime();
+			NetworkManager.getInstance().callNetworkStateChangeListener("Connecting...");
 			if(hasWifiIP()) {
 				Logd("Wifi already connected -- need not attempt again");
 				Toast("Wifi already connected -- need not attempt again");
@@ -184,6 +196,7 @@ public class NetworkUtilities {
 				Toast("Connected to "+ssid+", but could not get IP address.");
 				return false;
 			}
+			NetworkManager.getInstance().callNetworkStateChangeListener("Connected");
 			return true;
 		}
 
@@ -305,11 +318,8 @@ public class NetworkUtilities {
     	if (listener == null) {
     		Loge("AdhocClient mode not started! Listener is null.");
     	}
-    	
-    	
-    	// Option 1: start wifi, the phone will automatically connect to AndroidTether
-    	// Option 2: start wifi, force the phone to connect to AndroidTether by starting a thread that repeatedly scans to find and connect to AndroidTether
-    	if (!startWifi_()) {
+    	   	
+     	if (!startWifi_()) {
     		Loge("AdhocClient mode not started. Could not start WiFi.");
     		Toast("AdhocClient mode not started. Could not start WiFi.");
     	}

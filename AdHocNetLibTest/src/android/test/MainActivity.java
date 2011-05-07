@@ -84,7 +84,7 @@ public class MainActivity extends Activity implements OnClickListener {
         networkManager.initialize(this);
         networkManager.registerCallBackForNetworkStateChange(new NetworkManager.NetworkStateChangeListener() {			
 			@Override
-			public void onNetworkStateChange(NetworkStates state) {
+			public void onNetworkStateChange(NetworkStates state, String details) {
 				switch (state) {
 				case ADHOC_CLIENT: setModeOnUIThread("Client"); break;
 				case ADHOC_SERVER: setModeOnUIThread("Server"); break;
