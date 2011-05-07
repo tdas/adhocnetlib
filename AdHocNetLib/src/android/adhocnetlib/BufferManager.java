@@ -78,9 +78,8 @@ public class BufferManager {
 		return true;
 	}
 	
-	public synchronized Collection<BufferItem> addItemsAndReturnNewItems (Collection<BufferItem> items) {
-		ArrayList<BufferItem> newItems = new ArrayList<BufferItem>();
-		
+	public synchronized ArrayList<BufferItem> addItemsAndReturnNewItems (Collection<BufferItem> items) {
+		ArrayList<BufferItem> newItems = new ArrayList<BufferItem>();		
 		for (BufferItem item: items) {
 			if (addItem_(item)) {
 				newItems.add(item);
@@ -127,6 +126,10 @@ public class BufferManager {
 			bufferedItems.put(item.hash,item);
 			return true;
 		}		
+	}
+	
+	private void removeExpiredItems() {
+		
 	}
 	
 	private boolean isDuplicate (Data data) {

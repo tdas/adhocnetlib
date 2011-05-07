@@ -28,14 +28,21 @@ import android.widget.Toast;
 
 public class NetworkUtilities {
 	
-	private class ScanReceiver extends BroadcastReceiver {
+	private class ScanReceiver extends BroadcastReceiver implements Runnable {
 		private static final String TAG = "NetworkUtilities.ScanningThread.ScanReceiver";
 		private String requiredSSID = "AndroidTether";
 		String message = null;
 		
 		@Override
 		public void onReceive(Context c, Intent intent) {
-
+			new Thread(this).start();
+		}
+		
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+		
+		
 			List<ScanResult> scanResults = null;			
 			boolean done = false;
 			boolean found = false;
@@ -179,6 +186,9 @@ public class NetworkUtilities {
 			}
 			return true;
 		}
+
+		
+		
 	}
 	
 	public static interface AdhocClientModeStartListener {

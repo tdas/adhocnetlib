@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.widget.TabHost;
+import android.widget.Toast;
 
 public class TwitHocActivity extends TabActivity {
   public static final String DATABASE_NAME = "twithoc.db";
@@ -93,6 +94,7 @@ public class TwitHocActivity extends TabActivity {
     	 NetworkManager.getInstance().destroy();
     	 System.exit(0);
      }
+     Toast.makeText(this,"Exiting", Toast.LENGTH_SHORT ).show();
      return super.onKeyDown(keyCode, event);
   }
   

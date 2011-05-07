@@ -158,11 +158,18 @@ public final class NetworkManager {
 					throw e;
 				}
 				
+				ArrayList<BufferItem> newItems  = null;
 				ArrayList<BufferItem> receivedBufferItems = null;
 				try {
 					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 					receivedBufferItems = (ArrayList<BufferItem>) ois.readObject();
-					bufferManager.addItems(receivedBufferItems);
+					newItems = bufferManager.addItemsAndReturnNewItems(receivedBufferItems);
+					for (BufferItem item: newItems) {
+						if (receivedDataListener != null) {
+							receivedDataListener.onReceiveData(item.data.bytes);
+						}
+					}
+					
 					Toast("Received buffer items");
 					Log.d(TAG, "Received buffer items");
 				} catch (Exception e) {
