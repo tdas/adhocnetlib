@@ -1,5 +1,8 @@
 package com.mosharaf.twithoc;
 
+import android.adhocnetlib.NetworkManager;
+import android.adhocnetlib.NetworkManager.NetworkStates;
+import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Context;
 import android.database.Cursor;
@@ -14,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class TimelineActivity extends ListActivity 
   implements OnClickListener {
@@ -21,7 +25,7 @@ public class TimelineActivity extends ListActivity
   protected GroupData groupData;
   protected MessageData messageData;
   
-  protected TextView tvConnectionSource;
+  protected TextView tvConnectionMode;
   protected ImageButton btRefresh;
     
   // Cursor containing the data
@@ -35,7 +39,7 @@ public class TimelineActivity extends ListActivity
     setContentView(R.layout.timeline);
     
     // Connect interface elements
-    tvConnectionSource = (TextView) this.findViewById(R.id.tv_connection_source);
+    tvConnectionMode = (TextView) this.findViewById(R.id.tv_connection_mode);
     btRefresh = (ImageButton) this.findViewById(R.id.bt_refresh_timeline);
     
     // Setup listeners
@@ -51,8 +55,30 @@ public class TimelineActivity extends ListActivity
     
     cur = messageData.all(this);
     setListAdapter(new TimelineCursorAdapter(this, R.layout.timeline_row, cur, displayFields, displayViews));
+    
+    // Add NetworkManager status listener
+    NetworkManager.getInstance().registerCallBackForNetworkStateChange(new NetworkManager.NetworkStateChangeListener() {			
+		@Override
+		public void onNetworkStateChange(NetworkStates state) {
+			switch (state) {
+			case ADHOC_CLIENT: setModeOnUIThread("Client"); break;
+			case ADHOC_SERVER: setModeOnUIThread("Server"); break;
+			case DISABLED: setModeOnUIThread("Disabled"); break;
+			}				
+		}
+	});
   }
   
+  public void setModeOnUIThread(final String mode) {
+    final Activity a = this;
+    a.runOnUiThread(new Runnable() {
+	  public void run() {
+        tvConnectionMode.setText(mode);
+        Toast.makeText(getApplicationContext(), "AAAAAA", Toast.LENGTH_SHORT).show();
+      }
+    });		
+  }
+
   @Override
   public void onResume() {
     super.onResume();

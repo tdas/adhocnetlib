@@ -1,5 +1,10 @@
 package com.mosharaf.twithoc;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
+import android.adhocnetlib.NetworkManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -82,7 +87,7 @@ public class NewMessageActivity extends Activity
       if (etRecipients.getText().length() != 0) {
         if (etMessage.getText().length() != 0) {
           // If there is a message and at least one recipient, try to post
-          if (postMessage(etMessage.getText().toString())) {
+          if (postMessage(etMessage.getText().toString(), etRecipients.getText().toString())) {        	
             // Notify success
             Toast.makeText(this, getString(R.string.post_message_succeeded), Toast.LENGTH_SHORT).show();
             
@@ -107,8 +112,21 @@ public class NewMessageActivity extends Activity
     }
   }
   
-  // TODO How to pass the recipients?
-  private boolean postMessage(String message) {   
+  private boolean postMessage(String messageToSend, String groupID) { 
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    Message message = new Message(messageToSend, groupID);
+    ObjectOutputStream oos;
+	
+    try {
+		oos = new ObjectOutputStream(bos);
+		oos.writeObject(message);
+	} catch (IOException e1) {
+		e1.printStackTrace();
+	}
+	
+    NetworkManager.getInstance().sendData(bos.toByteArray(), Message.expireAfter); 
+    
+    
     
     return false;    
   }
