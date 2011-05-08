@@ -41,7 +41,9 @@ public final class R {
         public static final int et_group_key=0x7f070003;
         public static final int et_message=0x7f070005;
         public static final int et_send_to=0x7f070004;
+        public static final int exit_twithoc=0x7f070010;
         public static final int select_groups_list=0x7f070008;
+        public static final int toggle_mode=0x7f070011;
         public static final int tv_connection_mode=0x7f070009;
         public static final int tv_group_name=0x7f07000b;
         public static final int tv_message=0x7f07000d;
@@ -57,6 +59,7 @@ public final class R {
     }
     public static final class menu {
         public static final int manage_groups=0x7f060000;
+        public static final int timeline=0x7f060001;
     }
     public static final class string {
         public static final int add_group_failed=0x7f05000f;
@@ -66,6 +69,7 @@ public final class R {
         public static final int create_group_label=0x7f05000b;
         public static final int delete_group_label=0x7f05000d;
         public static final int edit_group_label=0x7f05000a;
+        public static final int exit_twithoc_label=0x7f050011;
         public static final int manage_groups_label=0x7f050003;
         public static final int new_message_label=0x7f050002;
         public static final int no_message_to_send=0x7f050005;
@@ -75,6 +79,7 @@ public final class R {
         public static final int select_groups_dialog_title=0x7f050008;
         public static final int timeline_label=0x7f050001;
         public static final int timeline_no_messages=0x7f05000e;
+        public static final int toggle_mode_label=0x7f050012;
         public static final int update_group_label=0x7f05000c;
     }
 }

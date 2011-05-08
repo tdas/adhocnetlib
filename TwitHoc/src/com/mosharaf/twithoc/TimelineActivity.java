@@ -5,12 +5,17 @@ import java.util.HashMap;
 import android.adhocnetlib.NetworkManager;
 import android.adhocnetlib.NetworkManager.NetworkStates;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -130,6 +135,31 @@ public class TimelineActivity extends ListActivity
     // return queryBuilder.query(db, projectionIn, selection, null, null, null, sortOrder);
   }
   
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.timeline, menu);
+
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+	  
+    switch(item.getItemId()) {
+      case R.id.exit_twithoc:
+    	NetworkManager.getInstance().destroy();
+    	System.exit(0);
+        return true;
+
+      case R.id.toggle_mode:
+        return true;
+        
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+  }
+
   private class TimelineCursorAdapter extends SimpleCursorAdapter {
     private Cursor cursor;
     private Context context;
