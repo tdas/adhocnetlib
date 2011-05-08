@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:title="@string/exit_twithoc_label" android:id="@+id/exit_twithoc"></item>
+  <item android:title="@string/toggle_mode_label" android:id="@+id/toggle_mode"></item>
+</menu>
