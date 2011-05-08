@@ -97,7 +97,20 @@ public class TimelineActivity extends ListActivity
   public void onClick(View v) {
     if (v == btRefresh) {
       messageCursor.requery();
+      Toast.makeText(this,"" +messageData.count(), Toast.LENGTH_SHORT).show();
+      messageCursor.requery();
+  	  messageCursor.moveToFirst();
+      while (messageCursor.isAfterLast() == false) {
+  		String mID = messageCursor.getString(messageCursor.getColumnIndex(MessageData.MESSAGE_ID));
+  		String m = messageCursor.getString(messageCursor.getColumnIndex(MessageData.MESSAGE));
+  		
+  		messageCursor.moveToNext();
+  	  }
     }
+  }
+  
+  public void refreshTimeline() {
+      messageCursor.requery();
   }
 
   private Cursor getMessagesToDisplay() {

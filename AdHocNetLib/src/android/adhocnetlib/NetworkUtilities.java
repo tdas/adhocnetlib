@@ -32,7 +32,7 @@ public class NetworkUtilities {
 		private static final String TAG = "NetworkUtilities.ScanningThread.ScanReceiver";
 		private String requiredSSID = "AndroidTether";
 		private String message = null;
-		private int count = 0; 
+		private int count = 1; 
 		
 		@Override
 		public void onReceive(Context c, Intent intent) {
@@ -148,7 +148,6 @@ public class NetworkUtilities {
 		private boolean connect(int netID) throws InterruptedException {
 			String ssid = "";
 			NetworkManager.getInstance().setLastActivityTime();
-			NetworkManager.getInstance().callNetworkStateChangeListener("Connecting...");
 			if(hasWifiIP()) {
 				Logd("Wifi already connected -- need not attempt again");
 				Toast("Wifi already connected -- need not attempt again");
@@ -172,7 +171,13 @@ public class NetworkUtilities {
 						break;
 					}
 				}
-				attempt --;
+				String message = "Connecting";
+				for (int w = 0; w < 3 - (attempt % 3); w++ ) {
+					message += ".";
+				}
+ 				NetworkManager.getInstance().callNetworkStateChangeListener(message);
+ 				NetworkManager.getInstance().setLastActivityTime();
+ 				attempt --;
 				Thread.sleep(500);
 			}			
 			if (attempt <= 0) {
@@ -189,7 +194,13 @@ public class NetworkUtilities {
 				} else {
 					break;
 				}
-				attempt --;
+				String message = "Connecting.";
+				for (int w = 0; w < 3 - (attempt % 3); w++ ) {
+					message += ".";
+				}
+ 				NetworkManager.getInstance().callNetworkStateChangeListener(message);
+ 				NetworkManager.getInstance().setLastActivityTime();
+ 				attempt --;
 				Thread.sleep(500);
 			}
 			if (attempt <= 0) {
@@ -197,6 +208,7 @@ public class NetworkUtilities {
 				return false;
 			}
 			NetworkManager.getInstance().callNetworkStateChangeListener("Connected");
+			NetworkManager.getInstance().setLastActivityTime();
 			return true;
 		}
 
@@ -224,6 +236,8 @@ public class NetworkUtilities {
 	public synchronized boolean initialize(Context c) {
 		context = c;
 		wifiManager = (WifiManager) c.getSystemService(Context.WIFI_SERVICE);
+		stopAdhocServerMode();
+		stopAdhocClientMode();
 		initialized = true;
 		return true;
 	}
@@ -332,7 +346,7 @@ public class NetworkUtilities {
     	if (wifiManager.startScan()) {
     		scanStarted = true;
     		Logd("Scan started");
-    		Toast("Scan started");
+    		//Toast("Scan started");
     		return true;
     	} else {
     		Logd("Scan not started");

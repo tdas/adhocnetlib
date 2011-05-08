@@ -26,16 +26,7 @@ public class GroupData extends SQLiteOpenHelper {
 
   @Override
   public void onCreate(SQLiteDatabase db) {
-    String sql =
-      "CREATE TABLE " + TABLE_NAME + " ("
-        + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + GROUP_ID + " TEXT NOT NULL PRIMARY KEY, "
-        + NAME + " TEXT NOT NULL, "
-        + GROUP_KEY + " TEXT NOT NULL, "
-        + IS_SELECTED + " BOOLEAN NOT NULL"
-        + ");";
-
-    db.execSQL(sql);
+	  createTable();
   }
 
   @Override

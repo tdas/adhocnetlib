@@ -25,11 +25,12 @@ public class NetworkSwitchPolicy {
 	public NetworkManager.NetworkStates getNextState(NetworkManager.NetworkStates curState, NetworkManager.NetworkManagerState state) {
 		NetworkManager.NetworkStates nextState = curState; 
 		Date now = new Date();
-		Logd("lastSwitchTime = " + state.lastSwitchTime.getTime());
+		/*Logd("lastSwitchTime = " + state.lastSwitchTime.getTime());
 		Logd("now = " + now.getTime());
 		Logd("curState = " + curState);
 		Logd("adhocClientTime = " + adhocClientTime);
 		Logd("adhocServerTime = " + adhocServerTime);
+		*/
 		switch (curState) {
 		case DISABLED:
 			if (jumpBackToClient && now.getTime() - state.lastSwitchTime.getTime() > 3000) {
@@ -66,13 +67,14 @@ public class NetworkSwitchPolicy {
 				} else {
 					jumpBackToClient = true;
 					nextState = NetworkManager.NetworkStates.DISABLED;
+					NetworkManager.getInstance().Toast("Flipped coin and staying in client");
 					Logd("Flipped coin and staying in client");
 				}
 			}
 			break;
 		default: Loge("Unexpected state: "+ curState.toString());
 		}
-		Logd("Next state: " + nextState.toString());
+		//Logd("Next state: " + nextState.toString());
 		return nextState;
 	}
 	

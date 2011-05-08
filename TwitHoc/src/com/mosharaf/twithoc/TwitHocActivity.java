@@ -6,15 +6,74 @@ import java.io.ObjectInputStream;
 import java.io.StreamCorruptedException;
 
 import android.adhocnetlib.NetworkManager;
+import android.adhocnetlib.NetworkManager.ReceivedDataListener;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.TabHost;
 import android.widget.Toast;
 
 public class TwitHocActivity extends TabActivity {
+  public static class TwitReceivedDataListener implements ReceivedDataListener {
+
+	public static TwitReceivedDataListener instance = null;
+	
+	public static TwitReceivedDataListener getInstance(TwitHocActivity activity_) {
+		if (instance == null) {
+			instance = new TwitReceivedDataListener(activity_);
+		}
+		return instance;
+	}
+	
+	private TwitHocActivity activity;  
+		
+	private TwitReceivedDataListener ( TwitHocActivity activity_) {
+		activity = activity_;
+	}
+	  
+	@Override
+	public void onReceiveData(byte[] data) {
+		ObjectInputStream ois;
+		Message message = null;
+		
+		try {
+			ois = new ObjectInputStream (new ByteArrayInputStream (data));
+			message = (Message) ois.readObject();
+			ois.close();
+		} catch (Exception e) {
+			Log.e("TwitReceivedDataListener","Error deserialiing received data " + e.toString());
+		}
+		try {
+			// Add to local database
+			if (message != null) {
+				final Message finalMessage = message;
+				activity.runOnUiThread(new Runnable() {
+
+					@Override
+					public void run() {
+						new MessageData(activity).createNew(finalMessage);
+						
+						Toast.makeText(activity.getApplicationContext(), "Received message " + finalMessage.messageID, Toast.LENGTH_SHORT ).show();
+					}
+					
+				});
+			} else {
+			}
+		}
+		catch (Exception e ) {
+			String str = "Error creating message: " + e.toString();
+			Log.e("TwitReceivedDataListener", str);
+		}
+	}
+	  
+  }
+	
+	
+	
+	
   public static final String DATABASE_NAME = "twithoc.db";
   public static final int DATABASE_VERSION = 1;
   
@@ -36,7 +95,8 @@ public class TwitHocActivity extends TabActivity {
     NetworkManager.getInstance().start();
 
     // Add NetworkManager callback function
-    NetworkManager.getInstance().registerCallBackForReceivedData(new NetworkManager.ReceivedDataListener() {
+    NetworkManager.getInstance().registerCallBackForReceivedData(TwitReceivedDataListener.getInstance(this));
+    /*NetworkManager.getInstance().registerCallBackForReceivedData(new NetworkManager.ReceivedDataListener() {
 		@Override
 		public void onReceiveData(byte[] data) {
 			ObjectInputStream ois;
@@ -47,15 +107,20 @@ public class TwitHocActivity extends TabActivity {
 				message = (Message) ois.readObject();
 				ois.close();
 			} catch (Exception e) {
+				Toast.makeText(getApplicationContext(), "Error deserializing received data: " + e.toString(), Toast.LENGTH_SHORT).show();
 				e.printStackTrace();
 			}
 			
-			Toast.makeText(getApplicationContext(), "Received Stuff " + message.message, Toast.LENGTH_SHORT ).show();
 			// Add to local database
-			messageData.createNew(message);
+			if (message != null) {
+				Toast.makeText(getApplicationContext(), "Received message " + message.message, Toast.LENGTH_SHORT ).show();
+				messageData.createNew(message);
+			} else {
+				Toast.makeText(getApplicationContext(), "Received stuff but null message", Toast.LENGTH_SHORT ).show();
+			}
 		}
 	});
-    
+    */
     // Get the activity TabHost
     tabHost = getTabHost();
     // Reusable TabSpec for each tab
@@ -122,6 +187,13 @@ public class TwitHocActivity extends TabActivity {
 //     }
 //     Toast.makeText(this,"Exiting", Toast.LENGTH_SHORT ).show();
      return super.onKeyDown(keyCode, event);
+  }
+  
+  @Override
+  public void onDestroy() {
+	  super.onDestroy();
+	  Toast.makeText(this,"Exiting", Toast.LENGTH_SHORT ).show();
+	  NetworkManager.getInstance().destroy();
   }
   
   public void switchTab(String tabTag){

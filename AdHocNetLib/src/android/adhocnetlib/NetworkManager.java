@@ -201,6 +201,7 @@ public final class NetworkManager {
 					}
 				} catch (Exception e) {
 					message = "Error notifying application: " + e.toString();
+					Toast(message);
 					Loge(message);
 				}
 				//Toast("Data successfully received.");
@@ -237,7 +238,8 @@ public final class NetworkManager {
 				// Send the buffer items to server
 				
 				Thread.sleep(1000);
-				
+				ArrayList<BufferItem> newItems  = null;
+
 				while (attempts > 0) {
 					try {
 						try{
@@ -281,7 +283,6 @@ public final class NetworkManager {
 							throw e;
 						} 
 						
-						ArrayList<BufferItem> newItems  = null;
 						try {
 							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 							ArrayList<BufferItem> receivedBufferItems = (ArrayList<BufferItem>) ois.readObject();
@@ -299,19 +300,6 @@ public final class NetworkManager {
 							throw e;
 						}
 						
-						try {
-							if (newItems != null) {
-								for (BufferItem item: newItems) {
-									if (receivedDataListener != null) {
-										receivedDataListener.onReceiveData(item.data.bytes);
-									}
-								}
-							}
-						} catch (Exception e) {
-							message = "Error notifying application: " + e.toString();
-							Loge(message);
-							throw e;
-						}
 						
 						break;
 						
@@ -325,6 +313,22 @@ public final class NetworkManager {
 				}
 				
 				managerState.successfullySent = true;
+			
+				try {
+					if (newItems != null) {
+						for (BufferItem item: newItems) {
+							if (receivedDataListener != null) {
+								receivedDataListener.onReceiveData(item.data.bytes);
+							}
+						}
+					}
+				} catch (Exception e) {
+					message = "Error notifying application: " + e.toString();
+					Toast(message);
+					Loge(message);
+					throw e;
+				}
+				
 				//Toast("Data successfully sent.");
 			} catch (Exception e) {
 				message= "SendingThread exception: "+ e.toString();
@@ -336,6 +340,8 @@ public final class NetworkManager {
 					Logd("Error while trying to close socket in sending thread: " + e);
 				}
 			}
+			
+			
 		}
 	}
 
@@ -483,6 +489,7 @@ public final class NetworkManager {
 			switch (newState) {
 			case DISABLED: 
 				netUtils.stopWifi();
+				callNetworkStateChangeListener("");
 				Logd("All modes disabled");
 				//Toast("All modes disabled");
 				break;
@@ -491,6 +498,7 @@ public final class NetworkManager {
 				if(listeningThread == null) {
 					listeningThread = new ListeningThread();
 				}	
+				callNetworkStateChangeListener("");
 				Logd("Server mode started");
 				//Toast("Server mode started");
 				listeningThread.start();
@@ -503,13 +511,14 @@ public final class NetworkManager {
 						OnAdhocClientModeStarted();
 					}				
 				});
+				callNetworkStateChangeListener("Scanning.");
 				Logd("Client mode started");
 				//Toast("Client mode started");
 				break;
 			default: Loge("Unexpected new state: " + newState);
 			}
 			state = newState;
-			callNetworkStateChangeListener("");
+			
 		}
 	}
 	
@@ -543,6 +552,7 @@ public final class NetworkManager {
 	private void OnAdhocClientModeStarted() {
 		managerState.adhocClientModeStarted = true;
 		// get ip address and then connect at a predefined port
+		Toast("Starting thread to send.");
 		sendingThread = new SendingThread();
 		sendingThread.start();
 	}
