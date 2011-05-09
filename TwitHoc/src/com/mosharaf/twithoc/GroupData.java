@@ -37,7 +37,7 @@ public class GroupData extends SQLiteOpenHelper {
   
   private void createTable(SQLiteDatabase db) {
     String sql =
-        "CREATE TABLE " + TABLE_NAME + " ("
+        "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " ("
           + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
           + GROUP_ID + " TEXT UNIQUE NOT NULL, "
           + NAME + " TEXT UNIQUE NOT NULL, "

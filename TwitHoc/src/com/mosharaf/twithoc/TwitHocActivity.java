@@ -55,9 +55,9 @@ public class TwitHocActivity extends TabActivity {
 					@Override
 					public void run() {
 						new MessageData(activity).createNew(finalMessage);
-						/*if (TimelineActivity.instance!=null) {
+						if (TimelineActivity.instance!=null) {
 							TimelineActivity.instance.refreshTimeline();
-						}*/
+						}
 						Toast.makeText(activity.getApplicationContext(), "Received message " + finalMessage.messageID, Toast.LENGTH_SHORT ).show();
 					}
 					
@@ -97,8 +97,10 @@ public class TwitHocActivity extends TabActivity {
 
     // Create database objects
     groupData = new GroupData(this);
+    groupData.createTable();
     messageData = new MessageData(this);
-
+    messageData.createTable();
+    
     fillTablesWithTestData();
     
     // Get the activity TabHost
@@ -136,15 +138,15 @@ public class TwitHocActivity extends TabActivity {
   
 //Add some default database values
   private void fillTablesWithTestData() {
-    groupData.dropTable();
-    groupData.createTable();
+    // groupData.dropTable();
+    // groupData.createTable();
     if (groupData.count() == 0) {
-      groupData.insert("1", "Earl Grey", "A");
-      groupData.insert("2", "Assam", "B");
-      groupData.insert("3", "Jasmine Green", "C");
-      groupData.insert("4", "Darjeeling", "D");
+      groupData.insert("1", "Family", "A");
+      groupData.insert("2", "Friends", "B");
+      groupData.insert("3", "Community", "C");
     }
 
+    /*
     messageData.dropTable();
     messageData.createTable();
     if (messageData.count() == 0) {
@@ -155,6 +157,7 @@ public class TwitHocActivity extends TabActivity {
       messageData.createNew("The lazy dog didn't like it. Not at all.", "1", 300000);
       messageData.createNew("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "3", 300000);
     }
+    */
   }
   
   @Override

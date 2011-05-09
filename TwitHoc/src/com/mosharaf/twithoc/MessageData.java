@@ -38,7 +38,7 @@ public class MessageData extends SQLiteOpenHelper {
   
   private void createTable(SQLiteDatabase db) {
     String sql =
-        "CREATE TABLE " + TABLE_NAME + " ("
+        "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " ("
           + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
           + MESSAGE_ID + " TEXT UNIQUE NOT NULL, "
           + MESSAGE + " TEXT NOT NULL, "

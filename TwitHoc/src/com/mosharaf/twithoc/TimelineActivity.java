@@ -42,12 +42,12 @@ public class TimelineActivity extends ListActivity
   private String[] displayFields;
   private int[] displayViews;
   
-  /*public static TimelineActivity instance = null;
+  public static TimelineActivity instance = null;
   
   public TimelineActivity() {
 	  super();
 	  instance = this;
-  }*/
+  }
 
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -109,7 +109,6 @@ public class TimelineActivity extends ListActivity
   public void onClick(View v) {
     if (v == btRefresh) {
       messageCursor.requery();
-      Toast.makeText(this,"" +messageData.count(), Toast.LENGTH_SHORT).show();
       messageCursor.requery();
   	  messageCursor.moveToFirst();
       while (messageCursor.isAfterLast() == false) {
@@ -160,7 +159,7 @@ public class TimelineActivity extends ListActivity
         return true;
 
       case R.id.toggle_mode:
-    	//NetworkManager.getInstance().toggleNetworkState();
+    	NetworkManager.getInstance().toggleNetworkState();
         return true;
         
       default:

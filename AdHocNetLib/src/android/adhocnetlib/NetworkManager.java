@@ -479,7 +479,7 @@ public final class NetworkManager {
 	public synchronized void setState (NetworkStates newState) {
 		if (state != newState) {
 			managerState.lastSwitchTime = new Timestamp(new Date().getTime());
-								
+			String details = "";					
 			switch (state) {
 			case ADHOC_SERVER: 
 				if (listeningThread != null) {
@@ -498,10 +498,10 @@ public final class NetworkManager {
 				break;
 			}
 			
+			
 			switch (newState) {
 			case DISABLED: 
-				netUtils.stopWifi();
-				callNetworkStateChangeListener("");
+				netUtils.stopWifi();				
 				Logd("All modes disabled");
 				//Toast("All modes disabled");
 				break;
@@ -509,8 +509,7 @@ public final class NetworkManager {
 				netUtils.startAdhocServerMode(); 
 				if(listeningThread == null) {
 					listeningThread = new ListeningThread();
-				}	
-				callNetworkStateChangeListener("");
+				}				
 				Logd("Server mode started");
 				//Toast("Server mode started");
 				listeningThread.start();
@@ -523,14 +522,14 @@ public final class NetworkManager {
 						OnAdhocClientModeStarted();
 					}				
 				});
-				callNetworkStateChangeListener("Scanning.");
+				details = "Scanning.";
 				Logd("Client mode started");
 				//Toast("Client mode started");
 				break;
 			default: Loge("Unexpected new state: " + newState);
 			}
 			state = newState;
-			
+			callNetworkStateChangeListener(details);			
 		}
 	}
 	

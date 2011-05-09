@@ -41,9 +41,9 @@ public final class R {
         public static final int et_group_key=0x7f070003;
         public static final int et_message=0x7f070005;
         public static final int et_send_to=0x7f070004;
-        public static final int exit_twithoc=0x7f070010;
+        public static final int exit_twithoc=0x7f070011;
         public static final int select_groups_list=0x7f070008;
-        public static final int toggle_mode=0x7f070011;
+        public static final int toggle_mode=0x7f070010;
         public static final int tv_connection_mode=0x7f070009;
         public static final int tv_group_name=0x7f07000b;
         public static final int tv_message=0x7f07000d;
