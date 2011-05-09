@@ -109,10 +109,10 @@ public class NetworkUtilities {
 						if (!found) {
 							message = requiredSSID +" not found.";
 							Logd(message);
-							Toast(message);
+							//Toast(message);
 						} else if (found && !configured) {
 							message = requiredSSID +" found, but not configured.";
-							Logd(message);
+							Loge(message);
 							Toast(message);
 						}
 						
