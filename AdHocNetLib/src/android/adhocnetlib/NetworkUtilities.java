@@ -204,7 +204,7 @@ public class NetworkUtilities {
 				Thread.sleep(500);
 			}
 			if (attempt <= 0) {
-				Toast("Connected to "+ssid+", but could not get IP address.");
+				//Toast("Connected to "+ssid+", but could not get IP address.");
 				return false;
 			}
 			NetworkManager.getInstance().callNetworkStateChangeListener("Connected");
