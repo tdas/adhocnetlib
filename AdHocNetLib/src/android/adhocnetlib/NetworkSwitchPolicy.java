@@ -48,26 +48,26 @@ public class NetworkSwitchPolicy {
 			boolean flipCoin = false;
 			if (now.getTime() - state.lastActivityTime.getTime() > 10000) {				
 				if (state.successfullySent) {
-					NetworkManager.getInstance().Toast("Client successfully sent");
+					//NetworkManager.getInstance().Toast("Client successfully sent");
 					nextState = NetworkManager.NetworkStates.DISABLED;
 					state.successfullySent = false;
 				} else if (now.getTime() - state.lastSwitchTime.getTime() > adhocClientTime) {
-					NetworkManager.getInstance().Toast("Client time soft check");
+					//NetworkManager.getInstance().Toast("Client time soft check");
 					flipCoin = true;
 				}
 			} else if (now.getTime() - state.lastSwitchTime.getTime() > adhocClientTime * 3) {
-				NetworkManager.getInstance().Toast("Client time hard check");
+				//NetworkManager.getInstance().Toast("Client time hard check");
 				flipCoin = true;
 			}
 			if (flipCoin) {
 				if (Math.random() <= clientToServerProb) {
 					nextState = NetworkManager.NetworkStates.ADHOC_SERVER;
-					NetworkManager.getInstance().Toast("Flipped coin and switching to server");
+					//NetworkManager.getInstance().Toast("Flipped coin and switching to server");
 					Logd("Flipped coin and switching to server");
 				} else {
 					jumpBackToClient = true;
 					nextState = NetworkManager.NetworkStates.DISABLED;
-					NetworkManager.getInstance().Toast("Flipped coin and staying in client");
+					//NetworkManager.getInstance().Toast("Flipped coin and staying in client");
 					Logd("Flipped coin and staying in client");
 				}
 			}

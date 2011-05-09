@@ -95,7 +95,7 @@ public class NetworkUtilities {
 						    			done = true;
 										message = "Successfully connected.";
 										Logd(message);
-										Toast(message);
+										//Toast(message);
 										if (adhocClientModeStartListener != null) {
 											adhocClientModeStartListener.onAdhocClientModeReady();
 										}
@@ -181,7 +181,7 @@ public class NetworkUtilities {
 				Thread.sleep(500);
 			}			
 			if (attempt <= 0) {
-				Toast("Could not enable and connect to "+requiredSSID+".");
+				//Toast("Could not enable and connect to "+requiredSSID+".");
 				return false;
 			}
 			

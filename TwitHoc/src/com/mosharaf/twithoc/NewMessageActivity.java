@@ -103,7 +103,7 @@ public class NewMessageActivity extends Activity
         	messageData.createNew(message);
         	  
             // Notify success
-            Toast.makeText(this, getString(R.string.post_message_succeeded), Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, getString(R.string.post_message_succeeded), Toast.LENGTH_SHORT).show();
             
             // Go back to the timeline tab
             TwitHocActivity thA = (TwitHocActivity) this.getParent();

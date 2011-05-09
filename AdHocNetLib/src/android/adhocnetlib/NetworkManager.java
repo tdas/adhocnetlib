@@ -69,14 +69,14 @@ public final class NetworkManager {
 		Socket clientSocket = null;
 		@Override
 		public void run() {
-			Log.d(TAG, "ListeningThread started.");
+			Logd("ListeningThread started.");
 			String message = null;
 			try {
 				String wifiIP = netUtils.getIP();
 				serverSocket = new ServerSocket(adhocServerListeningPort, 10, InetAddress.getByName(wifiIP));
 				serverSocket.setSoTimeout((int)(NetworkSwitchPolicy.Default.adhocServerTime - 100));
-				Log.d(TAG, "Started listening.");
-				Toast ("Started listening.");
+				Logd("Started listening.");
+				//Toast ("Started listening.");
 				while (state == NetworkStates.ADHOC_SERVER) {
 					clientSocket = serverSocket.accept();
 					managerState.lastActivityTime = new Timestamp(new Date().getTime());
@@ -84,13 +84,13 @@ public final class NetworkManager {
 				}				
 			}  catch (UnknownHostException uhe) {
 				message= "ListeningThread exception: "+ uhe.toString();
-				Log.e(TAG, message);
+				Loge(message);
 			} catch (IOException ioe) {
 				message= "ListeningThread exception: "+ ioe.toString();
-				Log.e(TAG, message);
+				Loge(message);
 			} catch (Exception e) {
 				message= "ListeningThread exception: "+ e.toString();
-				Log.e(TAG, message);
+				Loge(message);
 			} finally {
 				try {
 					if (serverSocket != null) {
@@ -170,7 +170,7 @@ public final class NetworkManager {
 						newCount = newItems.size();
 					}
 					message = "Received "+receivedBufferItems.size()+" buffer items, "+newCount+" of them new.";
-					Toast(message);
+					//Toast(message);
 					Logd(message);
 				} catch (Exception e) {
 					Loge("Failed in deserializing buffer items: " + e);
@@ -184,7 +184,7 @@ public final class NetworkManager {
 					ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 					oos.writeObject(toSend);
 					message = "Sent "+toSend.size()+" buffer items."; 
-					Toast (message);
+					//Toast (message);
 					Logd(message);
 					bufferManager.addNodeIDToItems(toSend,clientid);
 				} catch (Exception e) {
@@ -276,7 +276,7 @@ public final class NetworkManager {
 							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 							oos.writeObject(toSend);
 							message = "Sent "+toSend.size()+" buffer items."; 
-							Toast (message);
+							//Toast (message);
 							Logd(message);
 							bufferManager.addNodeIDToItems(toSend,serverid);
 						
@@ -294,7 +294,7 @@ public final class NetworkManager {
 								newCount = newItems.size();
 							}
 							message = "Received "+receivedBufferItems.size()+" buffer items, "+newCount+" of them new.";
-							Toast(message);
+							//Toast(message);
 							Logd(message);
 						} catch (Exception e) {
 							Loge("Failed in deserializing buffer items: " + e);
@@ -446,7 +446,7 @@ public final class NetworkManager {
 	public boolean sendData(byte[] data, long ttl) {
 		if (!checkIfStarted()) return false;
 		boolean result =  bufferManager.createNewItem(data, ttl, uniqueID);
-		Toast("BufferManager has "+ bufferManager.getBufferSize()+" items.");
+		//Toast("BufferManager has "+ bufferManager.getBufferSize()+" items.");
 		return result;
 	}
 
@@ -563,7 +563,7 @@ public final class NetworkManager {
 	private void OnAdhocClientModeStarted() {
 		managerState.adhocClientModeStarted = true;
 		// get ip address and then connect at a predefined port
-		Toast("Starting thread to send.");
+		//Toast("Starting thread to send.");
 		sendingThread = new SendingThread();
 		sendingThread.start();
 	}
