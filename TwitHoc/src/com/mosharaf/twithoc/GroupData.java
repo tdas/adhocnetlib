@@ -26,7 +26,7 @@ public class GroupData extends SQLiteOpenHelper {
 
   @Override
   public void onCreate(SQLiteDatabase db) {
-	  createTable();
+	  createTable(db);
   }
 
   @Override
@@ -35,18 +35,22 @@ public class GroupData extends SQLiteOpenHelper {
     onCreate(db);
   }  
   
+  private void createTable(SQLiteDatabase db) {
+    String sql =
+        "CREATE TABLE " + TABLE_NAME + " ("
+          + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+          + GROUP_ID + " TEXT UNIQUE NOT NULL, "
+          + NAME + " TEXT UNIQUE NOT NULL, "
+          + GROUP_KEY + " TEXT NOT NULL, "
+          + IS_SELECTED + " BOOLEAN NOT NULL"
+          + ");";
+
+      db.execSQL(sql);
+  }
+  
   public void createTable() {
     SQLiteDatabase db = getReadableDatabase();
-    String sql =
-      "CREATE TABLE " + TABLE_NAME + " ("
-        + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + GROUP_ID + " TEXT UNIQUE NOT NULL, "
-        + NAME + " TEXT UNIQUE NOT NULL, "
-        + GROUP_KEY + " TEXT NOT NULL, "
-        + IS_SELECTED + " BOOLEAN NOT NULL"
-        + ");";
-
-    db.execSQL(sql);
+    createTable(db);
   }
 
   public void dropTable() {

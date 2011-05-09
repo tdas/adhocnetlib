@@ -27,7 +27,7 @@ public class MessageData extends SQLiteOpenHelper {
 
   @Override
   public void onCreate(SQLiteDatabase db) {
-	 createTable();
+    createTable(db);
   }
 
   @Override
@@ -36,19 +36,23 @@ public class MessageData extends SQLiteOpenHelper {
     onCreate(db);
   }  
   
+  private void createTable(SQLiteDatabase db) {
+    String sql =
+        "CREATE TABLE " + TABLE_NAME + " ("
+          + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+          + MESSAGE_ID + " TEXT UNIQUE NOT NULL, "
+          + MESSAGE + " TEXT NOT NULL, "
+          + GROUP_ID + " TEXT NOT NULL, "
+          + POSTED_AT + " INTEGER NOT NULL,"
+          + EXPIRE_AFTER + " INTEGER NOT NULL"
+          + ");";
+
+      db.execSQL(sql);
+  }
+
   public void createTable() {
     SQLiteDatabase db = getReadableDatabase();
-    String sql =
-      "CREATE TABLE " + TABLE_NAME + " ("
-        + _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
-        + MESSAGE_ID + " TEXT UNIQUE NOT NULL, "
-        + MESSAGE + " TEXT NOT NULL, "
-        + GROUP_ID + " TEXT NOT NULL, "
-        + POSTED_AT + " INTEGER NOT NULL,"
-        + EXPIRE_AFTER + " INTEGER NOT NULL"
-        + ");";
-
-    db.execSQL(sql);
+    createTable(db);
   }
 
   public void dropTable() {

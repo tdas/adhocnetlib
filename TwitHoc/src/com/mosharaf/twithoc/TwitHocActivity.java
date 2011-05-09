@@ -67,12 +67,8 @@ public class TwitHocActivity extends TabActivity {
 			String str = "Error creating message: " + e.toString();
 			Log.e("TwitReceivedDataListener", str);
 		}
-	}
-	  
-  }
-	
-	
-	
+	}  
+  }	
 	
   public static final String DATABASE_NAME = "twithoc.db";
   public static final int DATABASE_VERSION = 1;
@@ -96,31 +92,13 @@ public class TwitHocActivity extends TabActivity {
 
     // Add NetworkManager callback function
     NetworkManager.getInstance().registerCallBackForReceivedData(TwitReceivedDataListener.getInstance(this));
-    /*NetworkManager.getInstance().registerCallBackForReceivedData(new NetworkManager.ReceivedDataListener() {
-		@Override
-		public void onReceiveData(byte[] data) {
-			ObjectInputStream ois;
-			Message message = null;
-			
-			try {
-				ois = new ObjectInputStream (new ByteArrayInputStream (data));
-				message = (Message) ois.readObject();
-				ois.close();
-			} catch (Exception e) {
-				Toast.makeText(getApplicationContext(), "Error deserializing received data: " + e.toString(), Toast.LENGTH_SHORT).show();
-				e.printStackTrace();
-			}
-			
-			// Add to local database
-			if (message != null) {
-				Toast.makeText(getApplicationContext(), "Received message " + message.message, Toast.LENGTH_SHORT ).show();
-				messageData.createNew(message);
-			} else {
-				Toast.makeText(getApplicationContext(), "Received stuff but null message", Toast.LENGTH_SHORT ).show();
-			}
-		}
-	});
-    */
+
+    // Create database objects
+    groupData = new GroupData(this);
+    messageData = new MessageData(this);
+
+    fillTablesWithTestData();
+    
     // Get the activity TabHost
     tabHost = getTabHost();
     // Reusable TabSpec for each tab
@@ -151,13 +129,11 @@ public class TwitHocActivity extends TabActivity {
     tabHost.addTab(spec);
 
     // Make timeline the default tab
-    switchTab(getString(R.string.timeline_label));
-    
-    // Create database objects
-    groupData = new GroupData(this);
-    messageData = new MessageData(this);
-    
-    // Add some default database values
+    switchTab(getString(R.string.timeline_label));    
+  }  
+  
+//Add some default database values
+  private void fillTablesWithTestData() {
     groupData.dropTable();
     groupData.createTable();
     if (groupData.count() == 0) {
@@ -177,16 +153,6 @@ public class TwitHocActivity extends TabActivity {
       messageData.createNew("The lazy dog didn't like it. Not at all.", "1", 300000);
       messageData.createNew("Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.", "3", 300000);
     }
-  }  
-  
-  @Override
-  public boolean onKeyDown(int keyCode, KeyEvent event) {
-//     if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-//    	 NetworkManager.getInstance().destroy();
-//    	 System.exit(0);
-//     }
-//     Toast.makeText(this,"Exiting", Toast.LENGTH_SHORT ).show();
-     return super.onKeyDown(keyCode, event);
   }
   
   @Override
