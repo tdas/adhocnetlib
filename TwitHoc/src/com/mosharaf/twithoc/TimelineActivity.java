@@ -41,6 +41,13 @@ public class TimelineActivity extends ListActivity
   
   private String[] displayFields;
   private int[] displayViews;
+  
+  /*public static TimelineActivity instance = null;
+  
+  public TimelineActivity() {
+	  super();
+	  instance = this;
+  }*/
 
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -153,6 +160,7 @@ public class TimelineActivity extends ListActivity
         return true;
 
       case R.id.toggle_mode:
+    	//NetworkManager.getInstance().toggleNetworkState();
         return true;
         
       default:

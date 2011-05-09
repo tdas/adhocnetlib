@@ -55,7 +55,9 @@ public class TwitHocActivity extends TabActivity {
 					@Override
 					public void run() {
 						new MessageData(activity).createNew(finalMessage);
-						
+						/*if (TimelineActivity.instance!=null) {
+							TimelineActivity.instance.refreshTimeline();
+						}*/
 						Toast.makeText(activity.getApplicationContext(), "Received message " + finalMessage.messageID, Toast.LENGTH_SHORT ).show();
 					}
 					

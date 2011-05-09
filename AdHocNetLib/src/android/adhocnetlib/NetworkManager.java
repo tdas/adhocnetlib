@@ -185,7 +185,8 @@ public final class NetworkManager {
 					oos.writeObject(toSend);
 					message = "Sent "+toSend.size()+" buffer items."; 
 					Toast (message);
-					Logd(message);					
+					Logd(message);
+					bufferManager.addNodeIDToItems(toSend,clientid);
 				} catch (Exception e) {
 					Loge("Exception in serializing buffer items: " + e);
 					throw e;
@@ -277,7 +278,8 @@ public final class NetworkManager {
 							message = "Sent "+toSend.size()+" buffer items."; 
 							Toast (message);
 							Logd(message);
-							
+							bufferManager.addNodeIDToItems(toSend,serverid);
+						
 						} catch (Exception e) {
 							Loge("Exception in serializing buffer items: " + e);
 							throw e;
@@ -429,6 +431,16 @@ public final class NetworkManager {
 			Logd("Stopped");
 		}
 		return !managerState.started;
+	}
+	
+	public void toggleNetworkState() {
+		NetworkStates nextState = NetworkStates.DISABLED;
+		switch (state) {
+		case ADHOC_CLIENT: nextState = NetworkStates.ADHOC_SERVER; break;
+		case ADHOC_SERVER: nextState = NetworkStates.ADHOC_CLIENT; break;
+		case DISABLED: nextState = NetworkStates.ADHOC_CLIENT; break;
+		}
+		setState(nextState);
 	}
 	
 	public boolean sendData(byte[] data, long ttl) {
